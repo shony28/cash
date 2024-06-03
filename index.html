@@ -54,89 +54,50 @@
     </style>
 </head>
 <body>
-    <div id="auth-container">
-        <h1>Авторизация</h1>
-        <input type="text" id="name-input" placeholder="Введите ваше имя">
-        <button id="auth-btn">Войти</button>
-    </div>
-    <h1 id="welcome-message" style="display: none;"></h1>
-    <div id="russian-sentence" style="display: none;"></div>
-    <div id="english-words-container" class="sentence-container" style="display: none;"></div>
-    <button id="check-btn" style="display: none;">Перевірити</button>
-    <button id="reset-btn" style="display: none;">Скинути</button>
-    <div id="feedback" style="display: none;"></div>
-    <div id="correct-answer" style="display: none;"></div>
+    <h1>Вивчення англійської граматики</h1>
+    <div id="russian-sentence"></div>
+    <div id="english-words-container" class="sentence-container"></div>
+    <button id="check-btn">Перевірити</button>
+    <button id="reset-btn">Скинути</button> <!-- Добавлена кнопка сброса -->
+    <div id="feedback"></div>
+    <div id="correct-answer"></div>
 
     <script>
         const SPREADSHEET_ID = '1t4-Ds_1nlvX8ereG8xGfZ7khkocq5KkfyF5Em608h8U';
-        const GRAMMAR_RANGE = 'Лист9!A:C';
+        const RANGE = 'Лист9!A:C';
         const API_KEY = 'AIzaSyD-VNZ85_c09OXV9rPkBhHXbtDwXqsNZnM';
 
-        const grammarUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${GRAMMAR_RANGE}?key=${API_KEY}`;
+        const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${RANGE}?key=${API_KEY}`;
 
         let correctAnswer = '';
         let userAnswer = [];
         let currentIndex = 0;
         let values = [];
 
-        document.getElementById('auth-btn').onclick = () => {
-            const userName = document.getElementById('name-input').value.trim();
-            if (userName) {
-                saveUserName(userName);
-                document.getElementById('welcome-message').innerText = `Добро пожаловать, ${userName}!`;
-                document.getElementById('auth-container').style.display = 'none';
-                document.getElementById('welcome-message').style.display = 'block';
-                initializeGrammar();
-            }
-        };
-
-        const saveUserName = (userName) => {
-            const scriptUrl = 'https://script.google.com/macros/s/AKfycbzXWkLdVPoqr7hsCBloZsmi-kco2yZaW414LH8sd3LXeeBtjqlIM8rxfyP3s8n6M9zu0Q/exec';
-            fetch(scriptUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ name: userName }),
-            }).then(response => response.json())
-              .then(data => console.log('Имя пользователя сохранено:', data))
-              .catch(err => console.error('Ошибка при сохранении имени пользователя:', err));
-        };
-
-        const initializeGrammar = () => {
-            document.getElementById('russian-sentence').style.display = 'block';
-            document.getElementById('english-words-container').style.display = 'block';
-            document.getElementById('check-btn').style.display = 'block';
-            document.getElementById('reset-btn').style.display = 'block';
-            document.getElementById('feedback').style.display = 'block';
-            document.getElementById('correct-answer').style.display = 'block';
-            fetchData();
-        };
-
         const fetchData = () => {
-            fetch(grammarUrl)
+            fetch(url)
                 .then(response => response.json())
                 .then(data => {
-                    values = data.values.slice(1); // Пропустить заголовок
+                    values = data.values.slice(1); // Пропустити заголовок
                     if (values.length > 0) {
                         loadQuestion(currentIndex);
                     }
                 })
-                .catch(err => console.error('Ошибка получения данных:', err));
+                .catch(err => console.error('Помилка отримання даних:', err));
         };
 
         const loadQuestion = (index) => {
             const feedbackElement = document.getElementById('feedback');
             const russianSentence = values[index][0];
             correctAnswer = values[index][1];
-            const distractors = values[index][2] ? values[index][2].split(' ') : []; // Дополнительные варианты из столбца "C"
-            userAnswer = []; // Сбросить ответ пользователя
-            feedbackElement.innerText = ''; // Очистить обратную связь
-            document.getElementById('correct-answer').innerText = ''; // Очистить правильный ответ
+            const distractors = values[index][2] ? values[index][2].split(' ') : []; // Додаткові варіанти зі стовпця "C"
+            userAnswer = []; // Скинути відповідь користувача
+            feedbackElement.innerText = ''; // Очистити зворотний зв'язок
+            document.getElementById('correct-answer').innerText = ''; // Очистити правильну відповідь
 
             document.getElementById('russian-sentence').innerText = russianSentence;
 
-            const words = correctAnswer.split(' ').concat(distractors).sort(() => 0.5 - Math.random()); // Объединить правильные слова и дополнительные варианты
+            const words = correctAnswer.split(' ').concat(distractors).sort(() => 0.5 - Math.random()); // Об'єднати правильні слова та додаткові варіанти
             const container = document.getElementById('english-words-container');
             container.innerHTML = '';
             words.forEach(word => {
@@ -171,29 +132,34 @@
                 currentIndex++;
                 if (currentIndex < values.length) {
                     setTimeout(() => {
-                        correctAnswerElement.innerText = ''; // Очистить правильный ответ перед следующим вопросом
-                        loadQuestion(currentIndex); // Загрузить следующий вопрос
-                    }, 3000); // Задержка 3000мс, чтобы дать время на воспроизведение аудио
+                        correctAnswerElement.innerText = ''; // Очистити правильну відповідь перед наступним питанням
+                        loadQuestion(currentIndex); // Завантажити наступне питання
+                    }, 3000); // Затримка 3000мс, щоб дати час на програвання аудіо
                 } else {
-                    feedbackElement.innerText = 'Вы завершили все вопросы.';
+                    feedbackElement.innerText = 'Ви завершили всі питання.';
                 }
             } else {
-                feedbackElement.innerText = 'Ответ неправильный, попробуйте еще. 😢';
+                feedbackElement.innerText = 'Відповідь неправильна, спробуйте ще. 😢';
                 feedbackElement.classList.add('incorrect');
-                resetClickedWords(); // Сбросить только выделение слов
+                resetClickedWords(); // Скинути лише виділення слів
             }
         };
 
+        // Новая функция для сброса текущего вопроса
         document.getElementById('reset-btn').onclick = () => {
             resetClickedWords();
             loadQuestion(currentIndex);
         };
 
+        // Уже существующая функция
         const resetClickedWords = () => {
             const words = document.querySelectorAll('.word');
             words.forEach(word => word.classList.remove('clicked'));
-            userAnswer = []; // Сбросить ответ пользователя
+            userAnswer = []; // Скинути відповідь користувача
         };
+
+        // Ініціалізувати дані під час завантаження сторінки
+        fetchData();
     </script>
 </body>
 </html>
