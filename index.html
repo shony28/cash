@@ -70,12 +70,9 @@
     <script>
         const SPREADSHEET_ID = '1t4-Ds_1nlvX8ereG8xGfZ7khkocq5KkfyF5Em608h8U';
         const GRAMMAR_RANGE = 'Лист9!A:C';
-        const USERS_RANGE = 'users!A:A';
-
         const API_KEY = 'AIzaSyD-VNZ85_c09OXV9rPkBhHXbtDwXqsNZnM';
 
         const grammarUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${GRAMMAR_RANGE}?key=${API_KEY}`;
-        const usersUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${USERS_RANGE}?key=${API_KEY}`;
 
         let correctAnswer = '';
         let userAnswer = [];
@@ -94,14 +91,13 @@
         };
 
         const saveUserName = (userName) => {
-            fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${USERS_RANGE}:append?valueInputOption=RAW&key=${API_KEY}`, {
+            const scriptUrl = '<URL ВАШЕГО WEB APP ИЗ GOOGLE SCRIPT>';
+            fetch(scriptUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    values: [[userName]],
-                }),
+                body: JSON.stringify({ name: userName }),
             }).then(response => response.json())
               .then(data => console.log('Имя пользователя сохранено:', data))
               .catch(err => console.error('Ошибка при сохранении имени пользователя:', err));
