@@ -17,6 +17,7 @@
             margin: 5px;
             border: 1px solid #333;
             cursor: pointer;
+            font-size: 30px; /* Збільшення розміру шрифту для слів */
         }
         .word.clicked {
             background-color: lightgreen;
@@ -29,24 +30,26 @@
             font-size: 24px; /* Збільшення розміру шрифту */
             font-weight: bold;
         }
-        #check-btn {
+        #check-btn, #reset-btn { /* Оформление кнопки сброса и проверки */
             font-size: 18px; /* Збільшення розміру шрифту кнопки */
             padding: 10px 20px;
             margin-top: 20px;
             cursor: pointer;
+            margin-right: 10px; /* Разделить кнопки */
         }
         #correct-answer {
             color: darkgreen; /* Темно-зелений колір для правильної відповіді */
             font-weight: bold;
             margin-top: 20px;
+            font-size: 24px; /* Збільшення розміру шрифту для правильної відповіді */
         }
         #feedback.incorrect {
-            color: darkred; /* Темно-красный цвет */
+            color: darkred; /* Темно-красний колір */
         }
         h1 {
             font-size: 20px; /* Зменшення розміру шрифту заголовку */
-            color: #666; /* Зміна кольору заголовку */
-            font-weight: normal; /* Зробити шрифт тоншим */
+            color: #bfbfbf; /* Зміна кольору заголовку */
+            font-weight: lighter; /* Зробити шрифт тоншим */
         }
     </style>
 </head>
@@ -55,12 +58,13 @@
     <div id="russian-sentence"></div>
     <div id="english-words-container" class="sentence-container"></div>
     <button id="check-btn">Перевірити</button>
+    <button id="reset-btn">Скинути</button> <!-- Добавлена кнопка сброса -->
     <div id="feedback"></div>
     <div id="correct-answer"></div>
 
     <script>
         const SPREADSHEET_ID = '1t4-Ds_1nlvX8ereG8xGfZ7khkocq5KkfyF5Em608h8U';
-        const RANGE = 'Лист9!A:B';
+        const RANGE = 'Лист9!A:C';
         const API_KEY = 'AIzaSyD-VNZ85_c09OXV9rPkBhHXbtDwXqsNZnM';
 
         const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${RANGE}?key=${API_KEY}`;
@@ -86,13 +90,14 @@
             const feedbackElement = document.getElementById('feedback');
             const russianSentence = values[index][0];
             correctAnswer = values[index][1];
+            const distractors = values[index][2] ? values[index][2].split(' ') : []; // Додаткові варіанти зі стовпця "C"
             userAnswer = []; // Скинути відповідь користувача
             feedbackElement.innerText = ''; // Очистити зворотний зв'язок
             document.getElementById('correct-answer').innerText = ''; // Очистити правильну відповідь
 
             document.getElementById('russian-sentence').innerText = russianSentence;
 
-            const words = correctAnswer.split(' ').sort(() => 0.5 - Math.random());
+            const words = correctAnswer.split(' ').concat(distractors).sort(() => 0.5 - Math.random()); // Об'єднати правильні слова та додаткові варіанти
             const container = document.getElementById('english-words-container');
             container.innerHTML = '';
             words.forEach(word => {
@@ -140,6 +145,13 @@
             }
         };
 
+        // Новая функция для сброса текущего вопроса
+        document.getElementById('reset-btn').onclick = () => {
+            resetClickedWords();
+            loadQuestion(currentIndex);
+        };
+
+        // Уже существующая функция
         const resetClickedWords = () => {
             const words = document.querySelectorAll('.word');
             words.forEach(word => word.classList.remove('clicked'));
