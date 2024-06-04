@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вивчення англійської граматики</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="manifest" href="manifest.json">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f7fcff;
+            padding: 15px;
+        }
+        .sentence-container {
+            margin: 20px 0;
+        }
+        .word {
+            display: inline-block;
+            padding: 10px;
+            margin: 5px;
+            border: 1px solid #333;
+            cursor: pointer;
+            font-size: 30px; /* Збільшення розміру шрифту для слів */
+            border-radius: 5px;
+            background-color: white;
+        }
+        .word.clicked {
+            background-color: lightgreen;
+            border-color: green;
+        }
+        #feedback {
+            margin-top: 20px;
+        }
+        #russian-sentence {
+            font-size: 36px; /* Збільшення розміру шрифту */
+            font-weight: bold;
+        }
+        #check-btn, #reset-btn { /* Оформление кнопки сброса и проверки */
+            font-size: 18px; /* Збільшення розміру шрифту кнопки */
+            padding: 10px 20px;
+            margin-top: 20px;
+            cursor: pointer;
+            margin-right: 10px; /* Разделить кнопки */
+        }
+        #correct-answer {
+            color: darkgreen; /* Темно-зелений колір для правильної відповіді */
+            font-weight: bold;
+            margin-top: 20px;
+            font-size: 40px; /* Збільшення розміру шрифту для правильної відповіді */
+        }
+        #feedback.incorrect {
+            color: darkred; /* Темно-красний колір */
+            font-size: 20px;
+        }
+        h1 {
+            font-size: 20px; /* Зменшення розміру шрифту заголовку */
+            color: #00000094; /* Зміна кольору заголовку */
+            font-weight: lighter; /* Зробити шрифт тоншим */
+        }
+        #name-input-container {
+            margin-top: 20px;
+        }
+        #stats-container {
+            margin-top: 20px;
+            font-size: 16px; /* Збільшення розміру шрифту для статистики */
+        }
+        .separator {
+            margin: 20px 0;
+            border-bottom: 2px solid #9f9f9f;
+        }
+        .hidden {
+            display: none;
+        }
+        .correct-count {
+            color: darkgreen; /* Темно-зелёный для количества правильных ответов */
+            font-weight: bold;
+        }
+
+        .incorrect-count {
+            color: darkred; /* Темно-красный для количества неправильных ответов */
+            font-weight: bold;
+        }
+
+        .correct-after-incorrect-count {
+            color: #cb8401; /* Оранжевый для правильных ответов после ошибки */
+            font-weight: bold;
+        }
+        .correct-feedback {
+            color: darkgreen; /* Темно-зелёный цвет */
+            font-size: 20px;
+            font-weight: bold;
+        }
+        #name-input-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        #name-input-container label {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        #name-input {
+            padding: 10px 15px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 80%; /* Адаптивная ширина для мобильных устройств */
+            max-width: 300px; /* Максимальная ширина для больших экранов */
+            margin-bottom: 10px;
+        }
+
+        #start-btn {
+            font-size: 18px;
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #4CAF50; /* Зеленый фон */
+            color: white; /* Белый цвет текста */
+            border: none;
+            border-radius: 5px;
+        }
+        .styled-button {
+            font-size: 18px;
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #4CAF50; /* Зеленый фон */
+            color: white; /* Белый цвет текста */
+            border: none;
+            border-radius: 5px;
+            margin-top: 20px;
+            margin-right: 10px;
+        }
+
+    </style>
+</head>
+<body>
+    <h1>Вивчення англійської граматики</h1>
+    <div id="name-input-container">
+        <label for="name-input">Введіть ваше ім'я: </label>
+        <input type="text" id="name-input">
+        <button id="start-btn">Почати</button>
+    </div>
+
+    <div class="separator hidden"></div> <!-- Линия для отделения -->
+
+    <div id="russian-sentence" class="hidden"></div>
+    <div id="english-words-container" class="sentence-container hidden"></div>
+    <button id="check-btn" class="hidden styled-button">Перевірити</button>
+    <button id="reset-btn" class="hidden styled-button"><i class="fas fa-redo"></i></button> <!-- скинути -->
+    <div id="feedback" class="hidden"></div>
+    <div id="correct-answer" class="hidden"></div>
+    <div class="separator"></div> <!-- Линия для отделения -->
+    <div id="stats-container" class="hidden"></div>
+
+    <script>
+        const SPREADSHEET_ID = '1t4-Ds_1nlvX8ereG8xGfZ7khkocq5KkfyF5Em608h8U';
+        const RANGE = 'Граматика!A:C';
+        const USERS_RANGE = 'users!A:B';
+        const API_KEY = 'AIzaSyD-VNZ85_c09OXV9rPkBhHXbtDwXqsNZnM';
+        const TELEGRAM_BOT_TOKEN = '6011167887:AAHf0yAGVoH4MFnuQdyP5PAk_iSgsVV4l2E';
+        const TELEGRAM_CHAT_ID = '459773195';
+
+        let correctAnswer = '';
+        let userAnswer = [];
+        let currentIndex = 0;
+        let values = [];
+        let userName = '';
+        let correctAnswers = 0;
+        let incorrectAnswers = 0;
+        let correctAfterIncorrect = 0;
+        let previousIncorrect = false;
+
+        const fetchData = (sheetName) => {
+            const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${sheetName}!A:C?key=${API_KEY}`;
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    values = data.values.slice(1); // Пропустити заголовок
+                    if (values.length > 0) {
+                        loadQuestion(currentIndex);
+                    }
+                })
+                .catch(err => console.error('Помилка отримання даних:', err));
+        };
+
+        const fetchUserSheet = () => {
+            const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${USERS_RANGE}?key=${API_KEY}`;
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    const users = data.values.slice(1); // Пропустить заголовок
+                    const user = users.find(row => row[0] === userName);
+                    if (user) {
+                        const userSheet = user[1];
+                        fetchData(userSheet);
+                    } else {
+                        alert('Вас немає в системі. Зверніться до адміністратора');
+                    }
+                })
+                .catch(err => console.error('Помилка отримання даних користувача:', err));
+        };
+
+               const loadQuestion = (index) => {
+            const feedbackElement = document.getElementById('feedback');
+            const russianSentence = values[index][0];
+            correctAnswer = values[index][1];
+            const distractors = values[index][2] ? values[index][2].split(' ') : [];
+            userAnswer = [];
+            feedbackElement.innerText = '';
+            document.getElementById('correct-answer').innerText = '';
+
+            document.getElementById('russian-sentence').innerText = russianSentence;
+
+            const words = correctAnswer.split(' ').concat(distractors).sort(() => 0.5 - Math.random());
+            const container = document.getElementById('english-words-container');
+            container.innerHTML = '';
+            words.forEach(word => {
+                const span = document.createElement('span');
+                span.innerText = word;
+                span.className = 'word';
+                span.onclick = () => {
+                    if (!span.classList.contains('clicked')) {
+                        userAnswer.push(word);
+                        span.classList.add('clicked');
+                    }
+                };
+                container.appendChild(span);
+            });
+        };
+
+        const playAudio = (text) => {
+            const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=en&q=${encodeURIComponent(text)}&client=tw-ob`;
+            const audio = new Audio(audioUrl);
+            audio.play();
+        };
+
+        document.getElementById('check-btn').onclick = () => {
+            const userAnswerStr = userAnswer.join(' ');
+            const feedbackElement = document.getElementById('feedback');
+            const correctAnswerElement = document.getElementById('correct-answer');
+
+            if (userAnswerStr === correctAnswer) {
+                feedbackElement.innerText = 'Правильно!';
+                feedbackElement.classList.remove('incorrect');
+                feedbackElement.classList.add('correct-feedback');
+                correctAnswerElement.innerText = correctAnswer;
+                playAudio(correctAnswer);
+
+                if (previousIncorrect) {
+                    correctAfterIncorrect++;
+                    previousIncorrect = false;
+                } else {
+                    correctAnswers++;
+                }
+
+                currentIndex++;
+
+                if (currentIndex < values.length) {
+                    setTimeout(() => {
+                        correctAnswerElement.innerText = '';
+                        loadQuestion(currentIndex);
+                    }, 4000);
+                } else {
+                    document.getElementById('russian-sentence').classList.add('hidden');
+                    document.getElementById('english-words-container').classList.add('hidden');
+                    document.getElementById('check-btn').classList.add('hidden');
+                    document.getElementById('reset-btn').classList.add('hidden');
+                    document.getElementById('feedback').classList.add('hidden');
+                    document.getElementById('correct-answer').classList.add('hidden');
+
+                    feedbackElement.innerText = 'Ви завершили всі питання.';
+                    feedbackElement.classList.remove('hidden');
+                    document.getElementById('stats-container').classList.remove('hidden');
+                    updateStats();
+                    sendResultsToTelegram();
+                }
+            } else {
+                feedbackElement.innerText = 'Відповідь неправильна, спробуйте ще. 😢';
+                feedbackElement.classList.add('incorrect');
+                feedbackElement.classList.remove('correct-feedback');
+                incorrectAnswers++;
+                previousIncorrect = true;
+                resetClickedWords();
+            }
+            updateStats();
+        };
+
+        document.getElementById('reset-btn').onclick = () => {
+            resetClickedWords();
+            loadQuestion(currentIndex);
+        };
+
+        const updateStats = () => {
+            const statsElement = document.getElementById('stats-container');
+            statsElement.innerHTML = `
+                <p>Правильні відповіді: <span class="correct-count">${correctAnswers}</span></p>
+                <p>Неправильні відповіді: <span class="incorrect-count">${incorrectAnswers}</span></p>
+                <p>Правильні відповіді після помилки: <span class="correct-after-incorrect-count">${correctAfterIncorrect}</span></p>`;
+            statsElement.classList.remove('hidden');
+        };
+
+        document.getElementById('start-btn').onclick = () => {
+            userName = document.getElementById('name-input').value;
+            if (userName.trim()) {
+                document.getElementById('name-input-container').style.display = 'none';
+                document.querySelector('.separator').classList.remove('hidden');
+                document.getElementById('russian-sentence').classList.remove('hidden');
+                document.getElementById('english-words-container').classList.remove('hidden');
+                document.getElementById('check-btn').classList.remove('hidden');
+                document.getElementById('reset-btn').classList.remove('hidden');
+                document.getElementById('feedback').classList.remove('hidden');
+                document.getElementById('correct-answer').classList.remove('hidden');
+                fetchUserSheet();
+            } else {
+                alert('Введіть ваше ім\'я.');
+            }
+        };
+
+        const resetClickedWords = () => {
+            const words = document.querySelectorAll('.word');
+            words.forEach(word => word.classList.remove('clicked'));
+            userAnswer = [];
+        };
+
+        const sendResultsToTelegram = () => {
+            const message = `
+                Ім'я: ${userName}\n
+                Правильні відповіді: ${correctAnswers}\n
+                Неправильні відповіді: ${incorrectAnswers}\
+                Правильні відповіді після помилки: ${correctAfterIncorrect}
+            `;
+
+            const apiUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(message)}`;
+
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.ok) {
+                        alert('Молодець! Результати надіслано Уляні Василівні.');
+                    } else {
+                        alert('Помилка надсилання результатів у Telegram.');
+                    }
+                })
+                .catch(err => console.error('Помилка надсилання даних у Telegram:', err));
+        };
+
+                        if ('serviceWorker' in navigator) {
+                  window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('/service-worker.js')
+                      .then(registration => {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                      })
+                      .catch(error => {
+                        console.log('ServiceWorker registration failed: ', error);
+                      });
+                  });
+                }
+
+    </script>
+</body>
+</html>
