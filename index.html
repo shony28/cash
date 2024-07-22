@@ -6,13 +6,25 @@
     <title>Text to Speech</title>
 </head>
 <body>
+    <label for="rate">Speed:</label>
+    <input type="range" id="rate" name="rate" min="0.1" max="2" value="1" step="0.1" oninput="updateRateValue(this.value)">
+    <span id="rateValue">1</span>
+    <br><br>
     <button onclick="speakText()">Play Audio</button>
 
     <script>
+        let rate = 1;
+
+        function updateRateValue(value) {
+            rate = value;
+            document.getElementById('rateValue').textContent = value;
+        }
+
         function speakText() {
             const text = "Hello, how are you?";
             const msg = new SpeechSynthesisUtterance(text);
             msg.lang = 'en-US';
+            msg.rate = rate;
             window.speechSynthesis.speak(msg);
         }
     </script>
