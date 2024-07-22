@@ -420,6 +420,8 @@
     </style>
 </head>
 
+
+
 <body>
     <div class="header">
         <h1 id="page-title">Англійська з Уляною Василівною</h1>
@@ -487,6 +489,8 @@
     <div class="overlay"></div>
 
     <script>
+        const AUDIO_RATE = 0.8; // Установите нужную скорость воспроизведения
+
         class TaskModule {
             constructor(containerId, russianSentenceId, englishWordsContainerId, userAnswerId, checkBtnId, resetBtnId, hintBtnId) {
                 this.container = document.getElementById(containerId);
@@ -600,6 +604,7 @@
             playAudio() {
                 const msg = new SpeechSynthesisUtterance(this.correctAnswer);
                 msg.lang = 'en-GB';
+                msg.rate = AUDIO_RATE; // Устанавливаем скорость воспроизведения
                 window.speechSynthesis.speak(msg);
             }
 
@@ -647,7 +652,8 @@
 
             const playCorrectAnswer = (correctAnswer) => {
                 const msg = new SpeechSynthesisUtterance(correctAnswer);
-                msg.lang = 'en-US';
+                msg.lang = 'en-GB';
+                msg.rate = AUDIO_RATE; // Устанавливаем скорость воспроизведения
                 window.speechSynthesis.speak(msg);
             };
 
@@ -897,6 +903,7 @@ document.getElementById('listen-check-btn').onclick = async () => {
             if (currentIndex < values.length) {
                 document.getElementById('feedback').classList.add('hidden');
                 document.getElementById('correct-answer').classList.add('hidden');
+                document.getElementById('listen-task-module').classList.remove('hidden');
                 await loadQuestion(currentIndex, sheetName); // Ожидание завершения загрузки
             } else {
                 completeModule();
