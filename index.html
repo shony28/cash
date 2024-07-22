@@ -3,26 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Audio Example</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js"></script>
+    <title>Text to Speech</title>
 </head>
 <body>
-    <button id="play-audio-btn">Play Audio</button>
+    <button onclick="speakText()">Play Audio</button>
 
     <script>
-        document.getElementById('play-audio-btn').onclick = () => {
+        function speakText() {
             const text = "Hello, how are you?";
-            const playbackRate = 0.5; // Установите нужную скорость воспроизведения
-            const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=en&q=${encodeURIComponent(text)}&client=tw-ob`;
-
-            const sound = new Howl({
-                src: [audioUrl],
-                html5: true,
-                rate: playbackRate
-            });
-
-            sound.play();
-        };
+            const msg = new SpeechSynthesisUtterance(text);
+            msg.lang = 'en-US';
+            window.speechSynthesis.speak(msg);
+        }
     </script>
 </body>
 </html>
