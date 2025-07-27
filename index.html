@@ -369,6 +369,7 @@
 
         let ratesData = [];
         let settingsData = {};
+        let SPREADSHEET_ID = null;
 
         // Словарь для сопоставления валют с кодами стран
         const currencyToCountryCode = {
@@ -431,41 +432,39 @@
 
         async function getSpreadsheetId() {
             try {
-                // Извлекаем алиас из URL (например, cash.pp.ua/shpak -> shpak)
-                const alias = window.location.pathname.split('/').pop() || 'default';
-                console.log('Извлечённый алиас:', alias);
+                const urlParams = new URLSearchParams(window.location.search);
+                const alias = urlParams.get('id') || 'default';
+                console.log('Завантаження ID таблиці для alias:', alias);
 
-                // Загружаем CSV с таблицей соответствий
                 const response = await fetch(ALIASES_CSV_URL);
                 const csvText = await response.text();
-
-                // Парсим CSV
-                const rows = csvText.split('\n').map(row => row.split(','));
-                if (rows.length < 2) {
-                    throw new Error('CSV таблица пуста или некорректна');
-                }
-
-                // Ищем SPREADSHEET_ID по алиасу (начиная со второго ряда)
-                for (let i = 1; i < rows.length; i++) {
-                    if (rows[i][0] && rows[i][0].trim() === alias && rows[i][1]) {
-                        const spreadsheetId = rows[i][1].trim();
-                        console.log('Найден SPREADSHEET_ID:', spreadsheetId);
-                        return spreadsheetId;
+                
+                // Парсимо CSV
+                const rows = csvText.split('\n').slice(1); // Пропускаємо заголовок
+                for (const row of rows) {
+                    const [csvAlias, spreadsheetId] = row.split(',').map(item => item.trim());
+                    if (csvAlias === alias && spreadsheetId) {
+                        SPREADSHEET_ID = spreadsheetId;
+                        console.log('Знайдено SPREADSHEET_ID:', SPREADSHEET_ID);
+                        return;
                     }
                 }
-
-                throw new Error(`SPREADSHEET_ID для алиаса "${alias}" не найден`);
+                
+                throw new Error(`ID таблиці для alias "${alias}" не знайдено`);
             } catch (error) {
                 console.error('Помилка отримання SPREADSHEET_ID:', error);
                 throw error;
             }
         }
 
-        async function loadSettings(spreadsheetId) {
+        async function loadSettings() {
+            if (!SPREADSHEET_ID) {
+                throw new Error('SPREADSHEET_ID не визначено');
+            }
             try {
                 console.log('Завантаження налаштувань...');
                 const proxyUrl = 'https://api.allorigins.win/raw?url=';
-                const targetUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?sheet=${SETTINGS_SHEET_NAME}&range=A:C&tqx=out:json`;
+                const targetUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?sheet=${SETTINGS_SHEET_NAME}&range=A:C&tqx=out:json`;
                 const fullUrl = proxyUrl + encodeURIComponent(targetUrl);
 
                 const response = await fetch(fullUrl);
@@ -509,13 +508,15 @@
 
         function applySettings() {
             const headerTitleEl = document.getElementById('headerTitle');
-            
             if (settingsData.nameHeader) {
                 headerTitleEl.textContent = settingsData.nameHeader;
             }
         }
 
-        async function loadRates(spreadsheetId) {
+        async function loadRates() {
+            if (!SPREADSHEET_ID) {
+                throw new Error('SPREADSHEET_ID не визначено');
+            }
             const loadingEl = document.getElementById('loading');
             const errorEl = document.getElementById('error');
             const containerEl = document.getElementById('ratesContainer');
@@ -527,7 +528,7 @@
 
             try {
                 const proxyUrl = 'https://api.allorigins.win/raw?url=';
-                const targetUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?sheet=${SHEET_NAME}&range=A2:C&tqx=out:json`;
+                const targetUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?sheet=${SHEET_NAME}&range=A2:C&tqx=out:json`;
                 const fullUrl = proxyUrl + encodeURIComponent(targetUrl);
 
                 const response = await fetch(fullUrl);
@@ -607,12 +608,13 @@
 
         async function loadAllData() {
             try {
-                const spreadsheetId = await getSpreadsheetId();
+                await getSpreadsheetId();
                 await Promise.all([
-                    loadSettings(spreadsheetId),
-                    loadRates(spreadsheetId)
+                    loadSettings(),
+                    loadRates()
                 ]);
             } catch (error) {
+                console.error('Помилка ініціалізації:', error);
                 const errorEl = document.getElementById('error');
                 const loadingEl = document.getElementById('loading');
                 loadingEl.style.display = 'none';
