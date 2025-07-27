@@ -19,7 +19,7 @@
         }
 
         .container {
-            max-width: 1000px;
+            max-width: 700px;
             margin: 0 auto;
         }
 
@@ -33,6 +33,7 @@
             font-size: 2.5rem;
             margin-bottom: 10px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            color: #524785;
         }
 
         .last-update {
@@ -73,8 +74,6 @@
             position: relative;
         }
 
-  
-
         .rates-table {
             width: 100%;
             border-collapse: collapse;
@@ -96,7 +95,6 @@
         }
 
         .rates-table th:first-child {
-            text-align: left;
             border-radius: 10px 0 0 0;
         }
 
@@ -111,8 +109,7 @@
             transition: all 0.3s ease;
         }
 
-        .rates-table td:first-child {
-            text-align: left;
+        .rates-table td {
             font-weight: 600;
             color: #333;
             font-size: 1.15rem;
@@ -124,7 +121,7 @@
 
         .rates-table tbody tr:hover {
             background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
-            transform: scale(1.02);
+            /*transform: scale(1.02);*/
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
 
@@ -133,7 +130,6 @@
         }
 
         .buy-rate {
-            /*background: linear-gradient(135deg, #4CAF50, #45a049);*/
             color: #333333;
             border-radius: 8px;
             padding: 8px 12px;
@@ -144,7 +140,6 @@
         }
 
         .sell-rate {
-            /*background: linear-gradient(135deg, #f44336, #d32f2f);*/
             color: #333333;
             border-radius: 8px;
             padding: 8px 12px;
@@ -161,6 +156,27 @@
             border-radius: 10px;
             text-align: center;
             margin: 20px 0;
+        }
+
+        /* Стили для валют с флагами */
+        .currency-cell {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .currency-flag {
+            width: 24px;
+            height: 18px;
+            border-radius: 3px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            object-fit: cover;
+        }
+
+        .currency-text {
+            font-weight: 600;
+            color: #333;
         }
 
         /* Мобільна адаптація */
@@ -187,18 +203,23 @@
                 padding: 12px 8px;
             }
 
-            .rates-table td:first-child {
+            .rates-table td {
                 font-size: 1rem;
             }
 
             .buy-rate, .sell-rate {
                 padding: 6px 8px;
-                font-size: 0.9rem;
+                font-size: 1.1rem;
                 min-width: 60px;
             }
 
             body {
                 padding: 15px;
+            }
+
+            .currency-flag {
+                width: 20px;
+                height: 15px;
             }
         }
 
@@ -220,19 +241,24 @@
                 padding: 10px 5px;
             }
 
-            .rates-table td:first-child {
+            .rates-table td {
                 font-size: 0.95rem;
             }
 
             .buy-rate, .sell-rate {
                 padding: 5px 6px;
-                font-size: 0.8rem;
+                font-size: 1rem;
                 min-width: 50px;
+            }
+
+            .currency-flag {
+                width: 18px;
+                height: 14px;
             }
         }
 
         /* Стили для адаптивної таблиці на маленьких екранах */
-        @media (max-width: 600px) {
+        @media (max-width: 300px) {
             .rates-table {
                 display: block;
                 overflow-x: auto;
@@ -281,7 +307,7 @@
                 color: #333;
             }
             
-            .rates-table td:first-child {
+            .rates-table td:nth-child(2) {
                 text-align: center !important;
                 font-size: 1.2rem !important;
                 padding-left: 0 !important;
@@ -292,8 +318,12 @@
                 padding: 10px !important;
             }
             
-            .rates-table td:first-child:before {
+            .rates-table td:nth-child(2):before {
                 display: none;
+            }
+
+            .currency-cell {
+                justify-content: center;
             }
         }
     </style>
@@ -301,7 +331,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>💱 Курси валют</h1>
+            <h1 id="headerTitle"></h1>
             <div class="last-update" id="lastUpdate">Завантаження...</div>
         </div>
 
@@ -311,16 +341,16 @@
         </div>
 
         <div id="error" class="error-message" style="display: none;">
-            <h3>❌ Помилка завантаження</h3>
-            <p>Не вдалося завантажити дані з Google Таблиці. Спробуйте оновити сторінку.</p>
+            <h3>Помилка завантаження</h3>
+            <p>Не вдалося завантажити дані. Спробуйте оновити сторінку.</p>
         </div>
 
         <div id="ratesContainer" class="table-container" style="display: none;">
             <table class="rates-table" id="ratesTable">
                 <thead>
                     <tr>
-                        <th>Валюта</th>
                         <th>Купівля</th>
+                        <th></th>
                         <th>Продаж</th>
                     </tr>
                 </thead>
@@ -334,9 +364,130 @@
         // Глобальні константи
         const SPREADSHEET_ID = '1wS170m_02ieAf20uu8iRPgFdZrZS_2-ivwhR0Cr2Nds';
         const SHEET_NAME = 'exchange';
+        const SETTINGS_SHEET_NAME = 'settings';
         const AUTO_REFRESH_INTERVAL = 30; // Інтервал автооновлення в хвилинах (0 - вимкнути)
 
         let ratesData = [];
+        let settingsData = {};
+
+        // Словарь для сопоставления валют с кодами стран
+        const currencyToCountryCode = {
+            'EUR': 'eu',
+            'USD': 'us',
+            'GBP': 'gb',
+            'PLN': 'pl',
+            'CZK': 'cz',
+            'CHF': 'ch',
+            'CAD': 'ca',
+            'AUD': 'au',
+            'JPY': 'jp',
+            'CNY': 'cn',
+            'SEK': 'se',
+            'NOK': 'no',
+            'DKK': 'dk',
+            'HUF': 'hu',
+            'RON': 'ro',
+            'BGN': 'bg',
+            'HRK': 'hr',
+            'RSD': 'rs',
+            'TRY': 'tr',
+            'ILS': 'il',
+            'AED': 'ae',
+            'SAR': 'sa',
+            'KRW': 'kr',
+            'SGD': 'sg',
+            'THB': 'th',
+            'MXN': 'mx',
+            'BRL': 'br',
+            'INR': 'in',
+            'RUB': 'ru',
+            'ZAR': 'za',
+            'NZD': 'nz'
+        };
+
+        function getCurrencyCode(currencyText) {
+            // Извлекаем код валюты из текста (первые 3 символа)
+            const match = currencyText.match(/^([A-Z]{3})/);
+            return match ? match[1] : null;
+        }
+
+        function createCurrencyDisplay(currencyText) {
+            const currencyCode = getCurrencyCode(currencyText);
+            const countryCode = currencyCode ? currencyToCountryCode[currencyCode] : null;
+            
+            if (countryCode) {
+                return `
+                    <div class="currency-cell">
+                        <img src="https://flagcdn.com/${countryCode}.svg" 
+                             alt="${currencyCode}" 
+                             class="currency-flag"
+                             onerror="this.style.display='none'">
+                        <span class="currency-text">${escapeHtml(currencyText)}</span>
+                    </div>
+                `;
+            } else {
+                return `<div class="currency-cell"><span class="currency-text">${escapeHtml(currencyText)}</span></div>`;
+            }
+        }
+
+        async function loadSettings() {
+            try {
+                console.log('Завантаження налаштувань...');
+                const proxyUrl = 'https://api.allorigins.win/raw?url=';
+                const targetUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?sheet=${SETTINGS_SHEET_NAME}&range=A:C&tqx=out:json`;
+                const fullUrl = proxyUrl + encodeURIComponent(targetUrl);
+
+                const response = await fetch(fullUrl);
+                const text = await response.text();
+                
+                // Парсим JSON из Google Visualization API
+                let jsonText = text.trim();
+                if (jsonText.startsWith('/*O_o*/\ngoogle.visualization.Query.setResponse(')) {
+                    jsonText = jsonText.substring(47);
+                    jsonText = jsonText.substring(0, jsonText.length - 2);
+                }
+                
+                const jsonData = JSON.parse(jsonText);
+                
+                if (!jsonData.table || !jsonData.table.rows) {
+                    console.warn('Лист налаштувань порожній або відсутній');
+                    return;
+                }
+
+                const rows = jsonData.table.rows;
+                settingsData = {};
+
+                // Обрабатываем настройки
+                for (let i = 0; i < rows.length; i++) {
+                    const row = rows[i];
+                    if (row.c && row.c.length >= 3) {
+                        const settingName = row.c[0] ? (row.c[0].v || '') : '';
+                        const settingValue = row.c[2] ? (row.c[2].v || '') : '';
+
+                        if (settingName && settingValue !== '') {
+                            settingsData[settingName.toString()] = settingValue.toString();
+                        }
+                    }
+                }
+
+                console.log('Налаштування завантажено:', settingsData);
+                applySettings();
+
+            } catch (error) {
+                console.error('Помилка завантаження налаштувань:', error);
+                // Если настройки не загружаются, продолжаем работу с дефолтными значениями
+            }
+        }
+
+        function applySettings() {
+            const headerTitleEl = document.getElementById('headerTitle');
+            
+            // Применяем настройку nameHeader, если она есть
+            if (settingsData.nameHeader) {
+                headerTitleEl.textContent = settingsData.nameHeader;
+            }
+            // Если настройка не найдена, оставляем дефолтное значение
+        }
 
         async function loadRates() {
             const loadingEl = document.getElementById('loading');
@@ -405,19 +556,6 @@
                 console.error('Помилка завантаження:', error);
                 loadingEl.style.display = 'none';
                 errorEl.style.display = 'block';
-                errorEl.innerHTML = `
-                    <h3>❌ Помилка завантаження</h3>
-                    <p>${error.message}</p>
-                    <p><strong>Можливі причини:</strong></p>
-                    <ul style="text-align: left; display: inline-block; margin: 10px 0;">
-                        <li>Google Таблиця не має публічного доступу</li>
-                        <li>Неправильний ID таблиці</li>
-                        <li>Лист "exchange" не існує</li>
-                        <li>У таблиці немає даних з рядка 2</li>
-                        <li>Проблеми з інтернет-з'єднанням</li>
-                    </ul>
-                    <p><small>ID таблиці: ${SPREADSHEET_ID}</small></p>
-                `;
                 lastUpdateEl.textContent = 'Помилка оновлення';
             }
         }
@@ -430,8 +568,8 @@
                 const row = document.createElement('tr');
                 
                 row.innerHTML = `
-                    <td data-label="Валюта">${escapeHtml(rate.currency)}</td>
                     <td data-label="Купівля"><span class="buy-rate">${escapeHtml(rate.buy.toString())}</span></td>
+                    <td data-label="Валюта">${createCurrencyDisplay(rate.currency)}</td>
                     <td data-label="Продаж"><span class="sell-rate">${escapeHtml(rate.sell.toString())}</span></td>
                 `;
 
@@ -445,10 +583,18 @@
             return div.innerHTML;
         }
 
+        async function loadAllData() {
+            // Загружаем настройки и курсы параллельно
+            await Promise.all([
+                loadSettings(),
+                loadRates()
+            ]);
+        }
+
         // Автоматическое обновление
         function startAutoRefresh() {
             if (AUTO_REFRESH_INTERVAL > 0) {
-                setInterval(loadRates, AUTO_REFRESH_INTERVAL * 60 * 1000);
+                setInterval(loadAllData, AUTO_REFRESH_INTERVAL * 60 * 1000);
                 console.log(`Автооновлення увімкнено: кожні ${AUTO_REFRESH_INTERVAL} хвилин`);
             } else {
                 console.log('Автооновлення вимкнено');
@@ -457,7 +603,7 @@
 
         // Загружаем данные при загрузке страницы
         document.addEventListener('DOMContentLoaded', function() {
-            loadRates();
+            loadAllData();
             startAutoRefresh();
         });
 
@@ -468,7 +614,7 @@
                 const lastUpdate = document.getElementById('lastUpdate').textContent;
                 if (!lastUpdate.includes('Останнє оновлення') || 
                     (Date.now() - new Date(lastUpdate.split(': ')[1]).getTime() > 2 * 60 * 1000)) {
-                    loadRates();
+                    loadAllData();
                 }
             }
         });
