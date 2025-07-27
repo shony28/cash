@@ -1,612 +1,477 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tracker</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-  <style>
-    body {
-      font-family: 'Roboto', sans-serif;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      position: relative;
-    }
-    .container {
-      background: #fff;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-      width: 100%;
-      max-width: 400px;
-      box-sizing: border-box;
-      text-align: center;
-    }
-    h2 {
-      margin-top: 0;
-      color: #333333d6;
-      font-size: 18px;
-      font-weight: normal;
-    }
-    .hidden {
-      display: none;
-    }
-    label {
-      font-weight: bold;
-      margin-top: 10px;
-      display: block;
-      text-align: left;
-    }
-    .input-wrapper {
-      position: relative;
-    }
-    input, select, button {
-      width: 100%;
-      padding: 10px;
-      margin-top: 10px;
-      font-size: 20px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      box-sizing: border-box;
-    }
-    .clear-icon {
-      position: absolute;
-      top: 50%;
-      right: 10px;
-      transform: translateY(-50%);
-      cursor: pointer;
-    }
-    input:focus, select:focus {
-      border-color: #3498db;
-      outline: none;
-    }
-    button {
-      background-color: #356d3b;
-      color: white;
-      border: none;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-      height: 55px;
-    }
-    button.yellow {
-      background-color: #b19228;
-      color: #fff;
-    }
-    button:hover {
-      background-color: #3e7f45;
-    }
-    .disabled {
-      background-color: #e0e0e0;
-      cursor: not-allowed;
-    }
-    .error {
-      color: #df0000;
-      margin-top: 14px;
-      font-size: 18px;
-    }
-    .hint {
-      color: #d36c11;
-      margin-top: 10px;
-      font-size: 18px;
-      font-weight: bold;
-    }
-    .loader {
-      border: 4px solid #f3f3f3;
-      border-radius: 50%;
-      border-top: 4px solid #3498db;
-      width: 20px;
-      height: 20px;
-      animation: spin 1s linear infinite;
-      margin: 10px auto;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    .user-info {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      color: #333;
-      display: flex;
-      align-items: center;
-    }
-    .logo {
-      width: 50px;
-      position: absolute;
-      top: 20px;
-      left: 20px;
-    }
-    .logout-icon {
-      margin-left: 10px;
-      cursor: pointer;
-    }
-    .fa-times:before{
-      content: "\f00d";
-      color: #00000047;
-      font-size: 18px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Курси валют</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #ffffff 0%, #ffffff 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .last-update {
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+
+        .loading {
+            text-align: center;
+            color: white;
+            font-size: 1.2rem;
+            margin: 50px 0;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top: 4px solid white;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .table-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            overflow-x: auto;
+            position: relative;
+        }
+
+  
+
+        .rates-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 1.1rem;
+            margin-top: 10px;
+        }
+
+        .rates-table thead {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .rates-table th {
+            padding: 18px 15px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 1.2rem;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+
+        .rates-table th:first-child {
+            text-align: left;
+            border-radius: 10px 0 0 0;
+        }
+
+        .rates-table th:last-child {
+            border-radius: 0 10px 0 0;
+        }
+
+        .rates-table td {
+            padding: 16px 15px;
+            text-align: center;
+            border-bottom: 1px solid #e0e0e0;
+            transition: all 0.3s ease;
+        }
+
+        .rates-table td:first-child {
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+            font-size: 1.15rem;
+        }
+
+        .rates-table tbody tr {
+            transition: all 0.3s ease;
+        }
+
+        .rates-table tbody tr:hover {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            transform: scale(1.02);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .rates-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .buy-rate {
+            /*background: linear-gradient(135deg, #4CAF50, #45a049);*/
+            color: #333333;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-weight: bold;
+            display: inline-block;
+            min-width: 80px;
+            box-shadow: 0 2px 8px rgba(173, 173, 173, 0.3);
+        }
+
+        .sell-rate {
+            /*background: linear-gradient(135deg, #f44336, #d32f2f);*/
+            color: #333333;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-weight: bold;
+            display: inline-block;
+            min-width: 80px;
+            box-shadow: 0 2px 8px rgba(173, 173, 173, 0.3);
+        }
+
+        .error-message {
+            background: rgba(244, 67, 54, 0.9);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        /* Мобільна адаптація */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .table-container {
+                padding: 20px;
+                margin: 0 -10px;
+            }
+
+            .rates-table {
+                font-size: 1rem;
+            }
+
+            .rates-table th {
+                padding: 12px 8px;
+                font-size: 1rem;
+            }
+
+            .rates-table td {
+                padding: 12px 8px;
+            }
+
+            .rates-table td:first-child {
+                font-size: 1rem;
+            }
+
+            .buy-rate, .sell-rate {
+                padding: 6px 8px;
+                font-size: 0.9rem;
+                min-width: 60px;
+            }
+
+            body {
+                padding: 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .table-container {
+                padding: 15px;
+            }
+
+            .rates-table th {
+                padding: 10px 5px;
+                font-size: 0.9rem;
+            }
+
+            .rates-table td {
+                padding: 10px 5px;
+            }
+
+            .rates-table td:first-child {
+                font-size: 0.95rem;
+            }
+
+            .buy-rate, .sell-rate {
+                padding: 5px 6px;
+                font-size: 0.8rem;
+                min-width: 50px;
+            }
+        }
+
+        /* Стили для адаптивної таблиці на маленьких екранах */
+        @media (max-width: 600px) {
+            .rates-table {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+            
+            .rates-table thead,
+            .rates-table tbody,
+            .rates-table th,
+            .rates-table td,
+            .rates-table tr {
+                display: block;
+            }
+            
+            .rates-table thead tr {
+                position: absolute;
+                top: -9999px;
+                left: -9999px;
+            }
+            
+            .rates-table tr {
+                border: 1px solid #ccc;
+                margin-bottom: 10px;
+                padding: 10px;
+                border-radius: 8px;
+                background: white;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            }
+            
+            .rates-table td {
+                border: none !important;
+                position: relative;
+                padding-left: 50% !important;
+                text-align: right !important;
+                white-space: normal;
+            }
+            
+            .rates-table td:before {
+                content: attr(data-label) ": ";
+                position: absolute;
+                left: 6px;
+                width: 45%;
+                padding-right: 10px;
+                white-space: nowrap;
+                font-weight: bold;
+                color: #333;
+            }
+            
+            .rates-table td:first-child {
+                text-align: center !important;
+                font-size: 1.2rem !important;
+                padding-left: 0 !important;
+                margin-bottom: 10px;
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                color: white;
+                border-radius: 5px;
+                padding: 10px !important;
+            }
+            
+            .rates-table td:first-child:before {
+                display: none;
+            }
+        }
+    </style>
 </head>
 <body>
+    <div class="container">
+        <div class="header">
+            <h1>💱 Курси валют</h1>
+            <div class="last-update" id="lastUpdate">Завантаження...</div>
+        </div>
 
-  <img src="https://klen.ua/klen-logo-89x100.jpg" alt="Klen Logo" class="logo">
-  <div class="user-info hidden" id="userInfo">
-    <p id="userName"></p>
-    <i class="fas fa-sign-out-alt logout-icon" onclick="logout()"></i>
-    <input type="hidden" id="hiddenLogin">
-    <input type="hidden" id="hiddenUserName">
-  </div>
-  <div class="container">
-    <div id="loginSection">
-      <h2>Авторизація</h2>
-      <label for="login">Введіть № пропуска</label>
-      <div class="input-wrapper">
-        <input type="number" id="login" placeholder="Логін" maxlength="4" oninput="validateMaxLength(this, 4)">
-        <i class="fas fa-times clear-icon" onclick="clearInput('login')"></i>
-      </div>
-      <button onclick="login()">Увійти</button>
-      <div class="loader hidden" id="loginLoader"></div>
-      <p id="loginMessage" class="error"></p>
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <div>Завантаження курсів валют...</div>
+        </div>
+
+        <div id="error" class="error-message" style="display: none;">
+            <h3>❌ Помилка завантаження</h3>
+            <p>Не вдалося завантажити дані з Google Таблиці. Спробуйте оновити сторінку.</p>
+        </div>
+
+        <div id="ratesContainer" class="table-container" style="display: none;">
+            <table class="rates-table" id="ratesTable">
+                <thead>
+                    <tr>
+                        <th>Валюта</th>
+                        <th>Купівля</th>
+                        <th>Продаж</th>
+                    </tr>
+                </thead>
+                <tbody id="ratesTableBody">
+                </tbody>
+            </table>
+        </div>
     </div>
 
-    <div id="workSection" class="hidden">
-      <h2>Трекер виконання. Цех № 3</h2>
-      <label for="routeNumber">№ маршрутного листа</label>
-      <div class="input-wrapper">
-        <input type="number" id="routeNumber" placeholder="№ МЛ" maxlength="6" oninput="validateMaxLength(this, 6)">
-        <i class="fas fa-times clear-icon" onclick="clearInput('routeNumber')"></i>
-      </div>
-      <label for="orderNumber">№ основного замовлення</label>
-      <div class="input-wrapper">
-        <input type="number" id="orderNumber" placeholder="№" maxlength="4" oninput="validateMaxLength(this, 4)">
-        <i class="fas fa-times clear-icon" onclick="clearInput('orderNumber')"></i>
-      </div>
-      <label for="quantity">Кількість з МЛ</label>
-      <div class="input-wrapper">
-        <input type="number" id="quantity" placeholder="шт" maxlength="4" oninput="validateMaxLength(this, 4)">
-        <i class="fas fa-times clear-icon" onclick="clearInput('quantity')"></i>
-      </div>
-      <label for="machine">Станок</label>
-      <select id="machine" onchange="saveMachineSelection()"></select>
-      <button id="startButton" onclick="startPreparation()">Підготовка / Налаштування</button>
-      <p id="workHint" class="hint hidden">Зараз проходить етап підготовки та налаштування.</p>
-      <input type="hidden" id="rowNumber">
-      <div class="loader hidden" id="workLoader"></div>
-      <p id="workMessage" class="error"></p>
-    </div>
+    <script>
+        // Глобальні константи
+        const SPREADSHEET_ID = '1wS170m_02ieAf20uu8iRPgFdZrZS_2-ivwhR0Cr2Nds';
+        const SHEET_NAME = 'exchange';
+        const AUTO_REFRESH_INTERVAL = 30; // Інтервал автооновлення в хвилинах (0 - вимкнути)
 
-    <div id="endSection" class="hidden">
-      <h2>Завершення роботи</h2>
-      <label for="producedQuantity">Виготовлена кількість</label>
-      <div class="input-wrapper">
-        <input type="number" id="producedQuantity" placeholder="шт" maxlength="4" oninput="validateMaxLength(this, 4)">
-        <i class="fas fa-times clear-icon" onclick="clearInput('producedQuantity')"></i>
-      </div>
-      <label for="comment">Коментар</label>
-      <div class="input-wrapper">
-        <input type="text" id="comment" placeholder="Коментар" oninput="validateMaxLength(this, 255)">
-        <i class="fas fa-times clear-icon" onclick="clearInput('comment')"></i>
-      </div>
-      <button onclick="endWork()">Підтвердити завершення</button>
-      <div class="loader hidden" id="endLoader"></div>
-      <p id="endMessage" class="error"></p>
-    </div>
-  </div>
+        let ratesData = [];
 
-  <script>
-    const API_KEY = 'AIzaSyAYOifWY-PJnF_9c9ihnGjx9YQNpmpNLJs';
-    const SPREADSHEET_ID = '1MGpWW2ycOe7EQikUJauXLzPdWbyH8bi4CQbaV-KJazM';
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbzSOqJuHPyZq55ksSLMYxdZKv4xR4Z72UwknZu6CMgfyT5Si8gcO16CGCZBZ4IorfTE/exec';
+        async function loadRates() {
+            const loadingEl = document.getElementById('loading');
+            const errorEl = document.getElementById('error');
+            const containerEl = document.getElementById('ratesContainer');
+            const lastUpdateEl = document.getElementById('lastUpdate');
 
-    document.addEventListener('DOMContentLoaded', () => {
-      loadMachines();
-      loadUserData();
-    });
+            // Показываем загрузку
+            loadingEl.style.display = 'block';
+            errorEl.style.display = 'none';
+            containerEl.style.display = 'none';
 
-    async function loadMachines() {
-      const machineSelect = document.getElementById('machine');
-      try {
-        const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Станки!A:A?key=${API_KEY}`;
-        const response = await fetch(url);
-        const data = await response.json();
-        const rows = data.values;
+            try {
+                // Используем CORS proxy для обхода ограничений
+                const proxyUrl = 'https://api.allorigins.win/raw?url=';
+                const targetUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?sheet=${SHEET_NAME}&range=A2:C&tqx=out:json`;
+                const fullUrl = proxyUrl + encodeURIComponent(targetUrl);
 
-        rows.forEach(row => {
-          const option = document.createElement('option');
-          option.value = row[0];
-          option.text = row[0];
-          machineSelect.add(option);
+                const response = await fetch(fullUrl);
+                const text = await response.text();
+                
+                // Парсим JSON из Google Visualization API (убираем префикс и суффикс)
+                let jsonText = text.trim();
+                if (jsonText.startsWith('/*O_o*/\ngoogle.visualization.Query.setResponse(')) {
+                    jsonText = jsonText.substring(47); // убираем префикс
+                    jsonText = jsonText.substring(0, jsonText.length - 2); // убираем ");"
+                }
+                
+                const jsonData = JSON.parse(jsonText);
+                
+                if (!jsonData.table || !jsonData.table.rows) {
+                    throw new Error('Неправильний формат даних або таблиця пуста');
+                }
+
+                const rows = jsonData.table.rows;
+                ratesData = [];
+
+                // Обрабатываем данные
+                for (let i = 0; i < rows.length; i++) {
+                    const row = rows[i];
+                    if (row.c && row.c.length >= 3) {
+                        const currency = row.c[0] ? (row.c[0].v || '') : '';
+                        const buyRate = row.c[1] ? (row.c[1].v || '') : '';
+                        const sellRate = row.c[2] ? (row.c[2].v || '') : '';
+
+                        if (currency && buyRate !== '' && sellRate !== '') {
+                            ratesData.push({
+                                currency: currency.toString(),
+                                buy: buyRate.toString(),
+                                sell: sellRate.toString()
+                            });
+                        }
+                    }
+                }
+
+                if (ratesData.length === 0) {
+                    throw new Error('Дані не знайдено. Перевірте, що у таблиці є дані починаючи з рядка 2');
+                }
+
+                displayRates();
+                loadingEl.style.display = 'none';
+                containerEl.style.display = 'block';
+                lastUpdateEl.textContent = `Останнє оновлення: ${new Date().toLocaleString('uk-UA')}`;
+
+            } catch (error) {
+                console.error('Помилка завантаження:', error);
+                loadingEl.style.display = 'none';
+                errorEl.style.display = 'block';
+                errorEl.innerHTML = `
+                    <h3>❌ Помилка завантаження</h3>
+                    <p>${error.message}</p>
+                    <p><strong>Можливі причини:</strong></p>
+                    <ul style="text-align: left; display: inline-block; margin: 10px 0;">
+                        <li>Google Таблиця не має публічного доступу</li>
+                        <li>Неправильний ID таблиці</li>
+                        <li>Лист "exchange" не існує</li>
+                        <li>У таблиці немає даних з рядка 2</li>
+                        <li>Проблеми з інтернет-з'єднанням</li>
+                    </ul>
+                    <p><small>ID таблиці: ${SPREADSHEET_ID}</small></p>
+                `;
+                lastUpdateEl.textContent = 'Помилка оновлення';
+            }
+        }
+
+        function displayRates() {
+            const tableBody = document.getElementById('ratesTableBody');
+            tableBody.innerHTML = '';
+
+            ratesData.forEach(rate => {
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td data-label="Валюта">${escapeHtml(rate.currency)}</td>
+                    <td data-label="Купівля"><span class="buy-rate">${escapeHtml(rate.buy.toString())}</span></td>
+                    <td data-label="Продаж"><span class="sell-rate">${escapeHtml(rate.sell.toString())}</span></td>
+                `;
+
+                tableBody.appendChild(row);
+            });
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Автоматическое обновление
+        function startAutoRefresh() {
+            if (AUTO_REFRESH_INTERVAL > 0) {
+                setInterval(loadRates, AUTO_REFRESH_INTERVAL * 60 * 1000);
+                console.log(`Автооновлення увімкнено: кожні ${AUTO_REFRESH_INTERVAL} хвилин`);
+            } else {
+                console.log('Автооновлення вимкнено');
+            }
+        }
+
+        // Загружаем данные при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            loadRates();
+            startAutoRefresh();
         });
 
-        const savedMachine = localStorage.getItem('machine');
-        if (savedMachine) {
-          machineSelect.value = savedMachine;
-        }
-      } catch (error) {
-        console.error('Error loading machines:', error);
-      }
-    }
-
-    function loadUserData() {
-      const login = localStorage.getItem('login');
-      const userName = localStorage.getItem('userName');
-      const buttonState = localStorage.getItem('buttonState');
-      const rowNumber = localStorage.getItem('rowNumber');
-      const workSectionDisabled = localStorage.getItem('workSectionDisabled');
-
-      if (login && userName) {
-        document.getElementById('hiddenLogin').value = login;
-        document.getElementById('hiddenUserName').value = userName;
-        document.getElementById('userName').innerText = userName;
-        document.getElementById('loginSection').classList.add('hidden');
-        document.getElementById('workSection').classList.remove('hidden');
-        document.getElementById('userInfo').classList.remove('hidden');
-
-        restoreUserState(login);
-
-        document.getElementById('routeNumber').value = localStorage.getItem('routeNumber') || '';
-        document.getElementById('orderNumber').value = localStorage.getItem('orderNumber') || '';
-        document.getElementById('quantity').value = localStorage.getItem('quantity') || '';
-        document.getElementById('producedQuantity').value = localStorage.getItem('quantity') || '';
-        document.getElementById('comment').value = localStorage.getItem('comment') || '';
-
-        if (buttonState) {
-          setButtonState(buttonState);
-        }
-
-        if (rowNumber) {
-          document.getElementById('rowNumber').value = rowNumber;
-        }
-
-        if (workSectionDisabled === 'true') {
-          disableWorkSection();
-        }
-      }
-    }
-
-    async function getLastUserRecord(login) {
-      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Робота!A:K?key=${API_KEY}`;
-      const response = await fetch(url);
-      const data = await response.json();
-      const rows = data.values;
-      let lastRecord = null;
-
-      for (let i = rows.length - 1; i > 0; i--) {
-        if (rows[i][5] === login) { // Assuming login is in column F
-          lastRecord = {
-            routeNumber: rows[i][0],
-            orderNumber: rows[i][1],
-            quantity: rows[i][2],
-            machine: rows[i][3],
-            startPreparationTime: rows[i][4],
-            startWorkTime: rows[i][7],
-            endWorkTime: rows[i][8],
-            producedQuantity: rows[i][9],
-            comment: rows[i][10],
-            rowNumber: i + 1 // Row number in the sheet
-          };
-          break;
-        }
-      }
-      return lastRecord;
-    }
-
-    async function restoreUserState(login) {
-      try {
-        const lastRecord = await getLastUserRecord(login);
-
-        if (lastRecord) {
-          document.getElementById('routeNumber').value = lastRecord.routeNumber || '';
-          document.getElementById('orderNumber').value = lastRecord.orderNumber || '';
-          document.getElementById('quantity').value = lastRecord.quantity || '';
-          document.getElementById('machine').value = lastRecord.machine || '';
-          document.getElementById('rowNumber').value = lastRecord.rowNumber || '';
-
-          localStorage.setItem('routeNumber', lastRecord.routeNumber);
-          localStorage.setItem('orderNumber', lastRecord.orderNumber);
-          localStorage.setItem('quantity', lastRecord.quantity);
-          localStorage.setItem('machine', lastRecord.machine);
-          localStorage.setItem('rowNumber', lastRecord.rowNumber);
-
-          if (lastRecord.startPreparationTime && lastRecord.startWorkTime && lastRecord.endWorkTime) {
-            setButtonState('Підготовка / Налаштування');
-            document.getElementById('startButton').onclick = startPreparation;
-          } else if (lastRecord.startPreparationTime && lastRecord.startWorkTime) {
-            setButtonState('Завершення');
-            document.getElementById('startButton').onclick = () => {
-              document.getElementById('workSection').classList.add('hidden');
-              document.getElementById('endSection').classList.remove('hidden');
-            };
-          } else if (lastRecord.startPreparationTime) {
-            setButtonState('Початок виконання');
-            document.getElementById('startButton').onclick = startWork;
-          } else {
-            setButtonState('Підготовка / Налаштування');
-            document.getElementById('startButton').onclick = startPreparation;
-          }
-        } else {
-          setButtonState('Підготовка / Налаштування');
-          document.getElementById('startButton').onclick = startPreparation;
-        }
-      } catch (error) {
-        console.error('Error restoring user state:', error);
-      }
-    }
-
-    function saveMachineSelection() {
-      const machineSelect = document.getElementById('machine');
-      localStorage.setItem('machine', machineSelect.value);
-    }
-
-    async function login() {
-      const login = document.getElementById('login').value;
-      const loginMessage = document.getElementById('loginMessage');
-      const loginLoader = document.getElementById('loginLoader');
-      loginMessage.innerText = '';
-
-      if (!login) {
-        loginMessage.innerText = 'Будь ласка, заповніть поле логіну.';
-        return;
-      }
-
-      loginLoader.classList.remove('hidden');
-
-      try {
-        const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Працівники!A:C?key=${API_KEY}`;
-        const response = await fetch(url);
-        const data = await response.json();
-        const rows = data.values;
-        let isValidUser = false;
-        let userName = '';
-
-        for (let i = 1; i < rows.length; i++) { // Starting from 1 to skip header row
-          if (rows[i][0] === login) {
-            isValidUser = true;
-            userName = rows[i][2]; // Assuming name is in column C
-            break;
-          }
-        }
-
-        loginLoader.classList.add('hidden');
-
-        if (isValidUser) {
-          document.getElementById('hiddenLogin').value = login;
-          document.getElementById('hiddenUserName').value = userName;
-          document.getElementById('loginSection').classList.add('hidden');
-          document.getElementById('workSection').classList.remove('hidden');
-          document.getElementById('userInfo').classList.remove('hidden');
-          document.getElementById('userName').innerText = userName;
-
-          localStorage.setItem('login', login);
-          localStorage.setItem('userName', userName);
-          localStorage.setItem('buttonState', 'Підготовка / Налаштування');
-
-          restoreUserState(login);
-        } else {
-          loginMessage.innerText = 'Невірний логін';
-        }
-      } catch (error) {
-        loginLoader.classList.add('hidden');
-        loginMessage.innerText = 'Помилка мережі або сервера';
-      }
-    }
-
-    async function startPreparation() {
-      const routeNumber = document.getElementById('routeNumber').value;
-      const orderNumber = document.getElementById('orderNumber').value;
-      const quantity = document.getElementById('quantity').value;
-      const machine = document.getElementById('machine').value;
-      const login = document.getElementById('hiddenLogin').value;
-      const userName = document.getElementById('hiddenUserName').value;
-      const workMessage = document.getElementById('workMessage');
-      const workLoader = document.getElementById('workLoader');
-      const workHint = document.getElementById('workHint');
-      workMessage.innerText = '';
-
-      if (!routeNumber || !orderNumber || !quantity || !machine || !login || !userName) {
-        workMessage.innerText = 'Будь ласка, заповніть всі поля.';
-        return;
-      }
-
-      workLoader.classList.remove('hidden');
-
-      try {
-        const response = await fetch(scriptURL, {
-          method: 'POST',
-          body: JSON.stringify({
-            action: 'startPreparation',
-            routeNumber: routeNumber,
-            orderNumber: orderNumber,
-            quantity: quantity,
-            machine: machine,
-            login: login,
-            userName: userName
-          })
+        // Обновление при возврате к вкладке
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden && AUTO_REFRESH_INTERVAL > 0) {
+                // Проверяем, прошло ли больше 2 минут с последнего обновления
+                const lastUpdate = document.getElementById('lastUpdate').textContent;
+                if (!lastUpdate.includes('Останнє оновлення') || 
+                    (Date.now() - new Date(lastUpdate.split(': ')[1]).getTime() > 2 * 60 * 1000)) {
+                    loadRates();
+                }
+            }
         });
-
-        const result = await response.json();
-        workLoader.classList.add('hidden');
-
-        if (result.success) {
-          setButtonState('Початок виконання');
-          document.getElementById('rowNumber').value = result.rowNumber;
-          document.getElementById('startButton').onclick = startWork;
-          workMessage.innerText = '';
-          workHint.classList.remove('hidden');
-
-          localStorage.setItem('routeNumber', routeNumber);
-          localStorage.setItem('orderNumber', orderNumber);
-          localStorage.setItem('quantity', quantity);
-          localStorage.setItem('rowNumber', result.rowNumber);
-          document.getElementById('producedQuantity').value = quantity;
-
-          disableWorkSection();
-        } else {
-          workMessage.innerText = 'Помилка запису даних';
-        }
-      } catch (error) {
-        workLoader.classList.add('hidden');
-        workMessage.innerText = 'Помилка мережі або сервера';
-      }
-    }
-
-    async function startWork() {
-      const rowNumber = document.getElementById('rowNumber').value;
-      const workLoader = document.getElementById('workLoader');
-      const workHint = document.getElementById('workHint');
-
-      workLoader.classList.remove('hidden');
-
-      try {
-        const response = await fetch(scriptURL, {
-          method: 'POST',
-          body: JSON.stringify({
-            action: 'startWork',
-            rowNumber: rowNumber
-          })
-        });
-
-        const result = await response.json();
-        workLoader.classList.add('hidden');
-
-        if (result.success) {
-          setButtonState('Завершення');
-          document.getElementById('startButton').onclick = () => {
-            document.getElementById('workSection').classList.add('hidden');
-            document.getElementById('endSection').classList.remove('hidden');
-            enableWorkSection();
-          };
-          workHint.classList.add('hidden');
-        } else {
-          console.error('Помилка запису даних');
-        }
-      } catch (error) {
-        workLoader.classList.add('hidden');
-        console.error('Помилка мережі або сервера');
-      }
-    }
-
-    async function endWork() {
-      const producedQuantity = document.getElementById('producedQuantity').value;
-      const comment = document.getElementById('comment').value;
-      const rowNumber = document.getElementById('rowNumber').value;
-      const endMessage = document.getElementById('endMessage');
-      const endLoader = document.getElementById('endLoader');
-      endMessage.innerText = '';
-
-      if (!producedQuantity) {
-        endMessage.innerText = 'Будь ласка, заповніть всі поля.';
-        return;
-      }
-
-      endLoader.classList.remove('hidden');
-
-      try {
-        const response = await fetch(scriptURL, {
-          method: 'POST',
-          body: JSON.stringify({
-            action: 'endWork',
-            producedQuantity: producedQuantity,
-            comment: comment,
-            rowNumber: rowNumber
-          })
-        });
-
-        const result = await response.json();
-        endLoader.classList.add('hidden');
-
-        if (result.success) {
-          document.getElementById('endSection').classList.add('hidden');
-          document.getElementById('workSection').classList.remove('hidden');
-          document.getElementById('routeNumber').value = '';
-          document.getElementById('orderNumber').value = '';
-          document.getElementById('quantity').value = '';
-          document.getElementById('producedQuantity').value = '';
-          document.getElementById('comment').value = '';
-          setButtonState('Підготовка / Налаштування');
-          document.getElementById('startButton').onclick = startPreparation;
-          endMessage.innerText = '';
-
-          localStorage.setItem('producedQuantity', producedQuantity);
-          localStorage.setItem('comment', comment);
-
-          enableWorkSection();
-        } else {
-          endMessage.innerText = 'Помилка запису даних';
-        }
-      } catch (error) {
-        endLoader.classList.add('hidden');
-        endMessage.innerText = 'Помилка мережі або сервера';
-      }
-    }
-
-    function setButtonState(state) {
-      const button = document.getElementById('startButton');
-      button.innerText = state;
-      if (state === 'Підготовка / Налаштування') {
-        button.classList.add('yellow');
-      } else {
-        button.classList.remove('yellow');
-      }
-      localStorage.setItem('buttonState', state);
-    }
-
-    function logout() {
-      document.getElementById('loginSection').classList.remove('hidden');
-      document.getElementById('workSection').classList.add('hidden');
-      document.getElementById('endSection').classList.add('hidden');
-      document.getElementById('userInfo').classList.add('hidden');
-      document.getElementById('login').value = '';
-      document.getElementById('hiddenLogin').value = '';
-      document.getElementById('hiddenUserName').value = '';
-      document.getElementById('userName').innerText = '';
-      document.getElementById('routeNumber').value = '';
-      document.getElementById('orderNumber').value = '';
-      document.getElementById('quantity').value = '';
-      document.getElementById('producedQuantity').value = '';
-      document.getElementById('comment').value = '';
-      setButtonState('Підготовка / Налаштування');
-      document.getElementById('startButton').onclick = startPreparation;
-
-      localStorage.clear();
-    }
-
-    function validateMaxLength(element, maxLength) {
-      if (element.value.length > maxLength) {
-        element.value = element.value.slice(0, maxLength);
-      }
-    }
-
-    function clearInput(inputId) {
-      const input = document.getElementById(inputId);
-      input.value = '';
-    }
-
-    function disableWorkSection() {
-      const inputs = document.querySelectorAll('#workSection input, #workSection select, #workSection button');
-      inputs.forEach(input => {
-        if (input.id !== 'startButton') {
-          input.disabled = true;
-          input.classList.add('disabled');
-        }
-      });
-      localStorage.setItem('workSectionDisabled', 'true');
-    }
-
-    function enableWorkSection() {
-      const inputs = document.querySelectorAll('#workSection input, #workSection select, #workSection button');
-      inputs.forEach(input => {
-        input.disabled = false;
-        input.classList.remove('disabled');
-      });
-      localStorage.setItem('workSectionDisabled', 'false');
-    }
-  </script>
-
+    </script>
 </body>
 </html>
