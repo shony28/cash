@@ -445,7 +445,7 @@
                     const [csvAlias, spreadsheetId] = row.split(',').map(item => item.trim());
                     if (csvAlias === alias && spreadsheetId) {
                         SPREADSHEET_ID = spreadsheetId;
-                        console.log('Знайдено SPREADSHEET_ID:', SPREADSHEET_ID);
+                        console.log('Знайдено SPREADSHEET_ID');
                         return;
                     }
                 }
