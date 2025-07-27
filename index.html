@@ -121,7 +121,6 @@
 
         .rates-table tbody tr:hover {
             background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
-            /*transform: scale(1.02);*/
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
 
@@ -179,6 +178,51 @@
             color: #333;
         }
 
+        /* Стили для визитки */
+        .landing-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            text-align: center;
+            max-width: 600px;
+            margin: 50px auto;
+        }
+
+        .landing-container h1 {
+            font-size: 2.2rem;
+            color: #524785;
+            margin-bottom: 20px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+
+        .landing-container p {
+            font-size: 1.2rem;
+            color: #333;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .landing-button {
+            display: inline-block;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .landing-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
         /* Мобільна адаптація */
         @media (max-width: 768px) {
             .header h1 {
@@ -221,6 +265,24 @@
                 width: 20px;
                 height: 15px;
             }
+
+            .landing-container {
+                padding: 30px;
+                margin: 30px 10px;
+            }
+
+            .landing-container h1 {
+                font-size: 1.8rem;
+            }
+
+            .landing-container p {
+                font-size: 1rem;
+            }
+
+            .landing-button {
+                padding: 12px 25px;
+                font-size: 1.1rem;
+            }
         }
 
         @media (max-width: 480px) {
@@ -255,9 +317,26 @@
                 width: 18px;
                 height: 14px;
             }
+
+            .landing-container {
+                padding: 20px;
+                margin: 20px 10px;
+            }
+
+            .landing-container h1 {
+                font-size: 1.6rem;
+            }
+
+            .landing-container p {
+                font-size: 0.9rem;
+            }
+
+            .landing-button {
+                padding: 10px 20px;
+                font-size: 1rem;
+            }
         }
 
-        /* Стили для адаптивної таблиці на маленьких екранах */
         @media (max-width: 300px) {
             .rates-table {
                 display: block;
@@ -330,33 +409,43 @@
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1 id="headerTitle"></h1>
-            <div class="last-update" id="lastUpdate">Завантаження...</div>
+        <div id="landingPage" style="display: none;">
+            <div class="landing-container">
+                <h1>Вітаємо на Cash Exchange</h1>
+                <p>Створюйте власні таблиці курсів валют для вашого обмінника за допомогою нашого зручного шаблону Google Sheets.</p>
+                <a href="https://docs.google.com/spreadsheets/d/1wS170m_02ieAf20uu8iRPgFdZrZS_2-ivwhR0Cr2Nds/copy" class="landing-button" target="_blank">Створити копію таблиці</a>
+            </div>
         </div>
 
-        <div id="loading" class="loading">
-            <div class="spinner"></div>
-            <div>Завантаження курсів валют...</div>
-        </div>
+        <div id="mainContent" style="display: none;">
+            <div class="header">
+                <h1 id="headerTitle"></h1>
+                <div class="last-update" id="lastUpdate">Завантаження...</div>
+            </div>
 
-        <div id="error" class="error-message" style="display: none;">
-            <h3>Помилка завантаження</h3>
-            <p>Не вдалося завантажити дані. <a href="#" id="retryLink">Спробувати ще раз</a></p>
-        </div>
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <div>Завантаження курсів валют...</div>
+            </div>
 
-        <div id="ratesContainer" class="table-container" style="display: none;">
-            <table class="rates-table" id="ratesTable">
-                <thead>
-                    <tr>
-                        <th>Купівля</th>
-                        <th></th>
-                        <th>Продаж</th>
-                    </tr>
-                </thead>
-                <tbody id="ratesTableBody">
-                </tbody>
-            </table>
+            <div id="error" class="error-message" style="display: none;">
+                <h3>Помилка завантаження</h3>
+                <p>Не вдалося завантажити дані. <a href="#" id="retryLink">Спробувати ще раз</a></p>
+            </div>
+
+            <div id="ratesContainer" class="table-container" style="display: none;">
+                <table class="rates-table" id="ratesTable">
+                    <thead>
+                        <tr>
+                            <th>Купівля</th>
+                            <th></th>
+                            <th>Продаж</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ratesTableBody">
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
@@ -661,8 +750,20 @@
         }
 
         document.addEventListener('DOMContentLoaded', function() {
-            loadAllData();
-            startAutoRefresh();
+            const urlParams = new URLSearchParams(window.location.search);
+            const alias = urlParams.get('id');
+            const landingPage = document.getElementById('landingPage');
+            const mainContent = document.getElementById('mainContent');
+
+            if (!alias) {
+                landingPage.style.display = 'block';
+                mainContent.style.display = 'none';
+            } else {
+                landingPage.style.display = 'none';
+                mainContent.style.display = 'block';
+                loadAllData();
+                startAutoRefresh();
+            }
 
             // Додаємо обробник для кнопки "Спробувати ще раз"
             document.getElementById('retryLink').addEventListener('click', function(e) {
