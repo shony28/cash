@@ -362,7 +362,7 @@
 
     <script>
         // Глобальні константи
-        const SPREADSHEET_ID = '1wS170m_02ieAf20uu8iRPgFdZrZS_2-ivwhR0Cr2Nds';
+        const ALIASES_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSg-032Hj6F202mS9S_G75DD6dpHlmpMzjf5cSw9_XmTsrnekqamSJwOc-BqdQADP-dNrCIsiAaKtud/pub?gid=0&single=true&output=csv';
         const SHEET_NAME = 'exchange';
         const SETTINGS_SHEET_NAME = 'settings';
         const AUTO_REFRESH_INTERVAL = 30; // Інтервал автооновлення в хвилинах (0 - вимкнути)
@@ -406,7 +406,6 @@
         };
 
         function getCurrencyCode(currencyText) {
-            // Извлекаем код валюты из текста (первые 3 символа)
             const match = currencyText.match(/^([A-Z]{3})/);
             return match ? match[1] : null;
         }
@@ -430,17 +429,48 @@
             }
         }
 
-        async function loadSettings() {
+        async function getSpreadsheetId() {
+            try {
+                // Извлекаем алиас из URL (например, cash.pp.ua/shpak -> shpak)
+                const alias = window.location.pathname.split('/').pop() || 'default';
+                console.log('Извлечённый алиас:', alias);
+
+                // Загружаем CSV с таблицей соответствий
+                const response = await fetch(ALIASES_CSV_URL);
+                const csvText = await response.text();
+
+                // Парсим CSV
+                const rows = csvText.split('\n').map(row => row.split(','));
+                if (rows.length < 2) {
+                    throw new Error('CSV таблица пуста или некорректна');
+                }
+
+                // Ищем SPREADSHEET_ID по алиасу (начиная со второго ряда)
+                for (let i = 1; i < rows.length; i++) {
+                    if (rows[i][0] && rows[i][0].trim() === alias && rows[i][1]) {
+                        const spreadsheetId = rows[i][1].trim();
+                        console.log('Найден SPREADSHEET_ID:', spreadsheetId);
+                        return spreadsheetId;
+                    }
+                }
+
+                throw new Error(`SPREADSHEET_ID для алиаса "${alias}" не найден`);
+            } catch (error) {
+                console.error('Помилка отримання SPREADSHEET_ID:', error);
+                throw error;
+            }
+        }
+
+        async function loadSettings(spreadsheetId) {
             try {
                 console.log('Завантаження налаштувань...');
                 const proxyUrl = 'https://api.allorigins.win/raw?url=';
-                const targetUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?sheet=${SETTINGS_SHEET_NAME}&range=A:C&tqx=out:json`;
+                const targetUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?sheet=${SETTINGS_SHEET_NAME}&range=A:C&tqx=out:json`;
                 const fullUrl = proxyUrl + encodeURIComponent(targetUrl);
 
                 const response = await fetch(fullUrl);
                 const text = await response.text();
                 
-                // Парсим JSON из Google Visualization API
                 let jsonText = text.trim();
                 if (jsonText.startsWith('/*O_o*/\ngoogle.visualization.Query.setResponse(')) {
                     jsonText = jsonText.substring(47);
@@ -457,7 +487,6 @@
                 const rows = jsonData.table.rows;
                 settingsData = {};
 
-                // Обрабатываем настройки
                 for (let i = 0; i < rows.length; i++) {
                     const row = rows[i];
                     if (row.c && row.c.length >= 3) {
@@ -475,45 +504,39 @@
 
             } catch (error) {
                 console.error('Помилка завантаження налаштувань:', error);
-                // Если настройки не загружаются, продолжаем работу с дефолтными значениями
             }
         }
 
         function applySettings() {
             const headerTitleEl = document.getElementById('headerTitle');
             
-            // Применяем настройку nameHeader, если она есть
             if (settingsData.nameHeader) {
                 headerTitleEl.textContent = settingsData.nameHeader;
             }
-            // Если настройка не найдена, оставляем дефолтное значение
         }
 
-        async function loadRates() {
+        async function loadRates(spreadsheetId) {
             const loadingEl = document.getElementById('loading');
             const errorEl = document.getElementById('error');
             const containerEl = document.getElementById('ratesContainer');
             const lastUpdateEl = document.getElementById('lastUpdate');
 
-            // Показываем загрузку
             loadingEl.style.display = 'block';
             errorEl.style.display = 'none';
             containerEl.style.display = 'none';
 
             try {
-                // Используем CORS proxy для обхода ограничений
                 const proxyUrl = 'https://api.allorigins.win/raw?url=';
-                const targetUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?sheet=${SHEET_NAME}&range=A2:C&tqx=out:json`;
+                const targetUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?sheet=${SHEET_NAME}&range=A2:C&tqx=out:json`;
                 const fullUrl = proxyUrl + encodeURIComponent(targetUrl);
 
                 const response = await fetch(fullUrl);
                 const text = await response.text();
                 
-                // Парсим JSON из Google Visualization API (убираем префикс и суффикс)
                 let jsonText = text.trim();
                 if (jsonText.startsWith('/*O_o*/\ngoogle.visualization.Query.setResponse(')) {
-                    jsonText = jsonText.substring(47); // убираем префикс
-                    jsonText = jsonText.substring(0, jsonText.length - 2); // убираем ");"
+                    jsonText = jsonText.substring(47);
+                    jsonText = jsonText.substring(0, jsonText.length - 2);
                 }
                 
                 const jsonData = JSON.parse(jsonText);
@@ -525,7 +548,6 @@
                 const rows = jsonData.table.rows;
                 ratesData = [];
 
-                // Обрабатываем данные
                 for (let i = 0; i < rows.length; i++) {
                     const row = rows[i];
                     if (row.c && row.c.length >= 3) {
@@ -584,14 +606,21 @@
         }
 
         async function loadAllData() {
-            // Загружаем настройки и курсы параллельно
-            await Promise.all([
-                loadSettings(),
-                loadRates()
-            ]);
+            try {
+                const spreadsheetId = await getSpreadsheetId();
+                await Promise.all([
+                    loadSettings(spreadsheetId),
+                    loadRates(spreadsheetId)
+                ]);
+            } catch (error) {
+                const errorEl = document.getElementById('error');
+                const loadingEl = document.getElementById('loading');
+                loadingEl.style.display = 'none';
+                errorEl.style.display = 'block';
+                document.getElementById('lastUpdate').textContent = 'Помилка оновлення';
+            }
         }
 
-        // Автоматическое обновление
         function startAutoRefresh() {
             if (AUTO_REFRESH_INTERVAL > 0) {
                 setInterval(loadAllData, AUTO_REFRESH_INTERVAL * 60 * 1000);
@@ -601,16 +630,13 @@
             }
         }
 
-        // Загружаем данные при загрузке страницы
         document.addEventListener('DOMContentLoaded', function() {
             loadAllData();
             startAutoRefresh();
         });
 
-        // Обновление при возврате к вкладке
         document.addEventListener('visibilitychange', function() {
             if (!document.hidden && AUTO_REFRESH_INTERVAL > 0) {
-                // Проверяем, прошло ли больше 2 минут с последнего обновления
                 const lastUpdate = document.getElementById('lastUpdate').textContent;
                 if (!lastUpdate.includes('Останнє оновлення') || 
                     (Date.now() - new Date(lastUpdate.split(': ')[1]).getTime() > 2 * 60 * 1000)) {
