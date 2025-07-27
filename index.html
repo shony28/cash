@@ -342,7 +342,7 @@
 
         <div id="error" class="error-message" style="display: none;">
             <h3>Помилка завантаження</h3>
-            <p>Не вдалося завантажити дані. Спробуйте оновити сторінку.</p>
+            <p>Не вдалося завантажити дані. <a href="#" id="retryLink">Спробувати ще раз</a></p>
         </div>
 
         <div id="ratesContainer" class="table-container" style="display: none;">
@@ -366,6 +366,8 @@
         const SHEET_NAME = 'exchange';
         const SETTINGS_SHEET_NAME = 'settings';
         const AUTO_REFRESH_INTERVAL = 30; // Інтервал автооновлення в хвилинах (0 - вимкнути)
+        const MAX_RETRIES = 3; // Максимальна кількість повторних спроб
+        const RETRY_DELAY = 2000; // Затримка між спробами (мс)
 
         let ratesData = [];
         let settingsData = {};
@@ -373,36 +375,12 @@
 
         // Словарь для сопоставления валют с кодами стран
         const currencyToCountryCode = {
-            'EUR': 'eu',
-            'USD': 'us',
-            'GBP': 'gb',
-            'PLN': 'pl',
-            'CZK': 'cz',
-            'CHF': 'ch',
-            'CAD': 'ca',
-            'AUD': 'au',
-            'JPY': 'jp',
-            'CNY': 'cn',
-            'SEK': 'se',
-            'NOK': 'no',
-            'DKK': 'dk',
-            'HUF': 'hu',
-            'RON': 'ro',
-            'BGN': 'bg',
-            'HRK': 'hr',
-            'RSD': 'rs',
-            'TRY': 'tr',
-            'ILS': 'il',
-            'AED': 'ae',
-            'SAR': 'sa',
-            'KRW': 'kr',
-            'SGD': 'sg',
-            'THB': 'th',
-            'MXN': 'mx',
-            'BRL': 'br',
-            'INR': 'in',
-            'RUB': 'ru',
-            'ZAR': 'za',
+            'EUR': 'eu', 'USD': 'us', 'GBP': 'gb', 'PLN': 'pl', 'CZK': 'cz',
+            'CHF': 'ch', 'CAD': 'ca', 'AUD': 'au', 'JPY': 'jp', 'CNY': 'cn',
+            'SEK': 'se', 'NOK': 'no', 'DKK': 'dk', 'HUF': 'hu', 'RON': 'ro',
+            'BGN': 'bg', 'HRK': 'hr', 'RSD': 'rs', 'TRY': 'tr', 'ILS': 'il',
+            'AED': 'ae', 'SAR': 'sa', 'KRW': 'kr', 'SGD': 'sg', 'THB': 'th',
+            'MXN': 'mx', 'BRL': 'br', 'INR': 'in', 'RUB': 'ru', 'ZAR': 'za',
             'NZD': 'nz'
         };
 
@@ -430,17 +408,51 @@
             }
         }
 
+        async function fetchWithRetry(url, retries = MAX_RETRIES, delay = RETRY_DELAY) {
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+                    return await response.text();
+                } catch (error) {
+                    console.warn(`Спроба ${i + 1} не вдалася:`, error);
+                    if (i < retries - 1) {
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                    } else {
+                        throw error;
+                    }
+                }
+            }
+        }
+
+        function cacheData(key, data) {
+            try {
+                localStorage.setItem(key, JSON.stringify(data));
+            } catch (e) {
+                console.warn('Не вдалося зберегти дані в localStorage:', e);
+            }
+        }
+
+        function getCachedData(key) {
+            try {
+                const data = localStorage.getItem(key);
+                return data ? JSON.parse(data) : null;
+            } catch (e) {
+                console.warn('Не вдалося отримати дані з localStorage:', e);
+                return null;
+            }
+        }
+
         async function getSpreadsheetId() {
             try {
                 const urlParams = new URLSearchParams(window.location.search);
                 const alias = urlParams.get('id') || 'default';
                 console.log('Завантаження ID таблиці для alias:', alias);
 
-                const response = await fetch(ALIASES_CSV_URL);
-                const csvText = await response.text();
+                const response = await fetchWithRetry(ALIASES_CSV_URL);
+                const csvText = response;
                 
-                // Парсимо CSV
-                const rows = csvText.split('\n').slice(1); // Пропускаємо заголовок
+                const rows = csvText.split('\n').slice(1);
                 for (const row of rows) {
                     const [csvAlias, spreadsheetId] = row.split(',').map(item => item.trim());
                     if (csvAlias === alias && spreadsheetId) {
@@ -467,8 +479,7 @@
                 const targetUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?sheet=${SETTINGS_SHEET_NAME}&range=A:C&tqx=out:json`;
                 const fullUrl = proxyUrl + encodeURIComponent(targetUrl);
 
-                const response = await fetch(fullUrl);
-                const text = await response.text();
+                const text = await fetchWithRetry(fullUrl);
                 
                 let jsonText = text.trim();
                 if (jsonText.startsWith('/*O_o*/\ngoogle.visualization.Query.setResponse(')) {
@@ -499,10 +510,17 @@
                 }
 
                 console.log('Налаштування завантажено:', settingsData);
+                cacheData('settingsData', settingsData);
                 applySettings();
 
             } catch (error) {
                 console.error('Помилка завантаження налаштувань:', error);
+                const cachedSettings = getCachedData('settingsData');
+                if (cachedSettings) {
+                    console.log('Використовую кешовані налаштування:', cachedSettings);
+                    settingsData = cachedSettings;
+                    applySettings();
+                }
             }
         }
 
@@ -531,8 +549,7 @@
                 const targetUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?sheet=${SHEET_NAME}&range=A2:C&tqx=out:json`;
                 const fullUrl = proxyUrl + encodeURIComponent(targetUrl);
 
-                const response = await fetch(fullUrl);
-                const text = await response.text();
+                const text = await fetchWithRetry(fullUrl);
                 
                 let jsonText = text.trim();
                 if (jsonText.startsWith('/*O_o*/\ngoogle.visualization.Query.setResponse(')) {
@@ -570,6 +587,7 @@
                     throw new Error('Дані не знайдено. Перевірте, що у таблиці є дані починаючи з рядка 2');
                 }
 
+                cacheData('ratesData', ratesData);
                 displayRates();
                 loadingEl.style.display = 'none';
                 containerEl.style.display = 'block';
@@ -577,9 +595,19 @@
 
             } catch (error) {
                 console.error('Помилка завантаження:', error);
-                loadingEl.style.display = 'none';
-                errorEl.style.display = 'block';
-                lastUpdateEl.textContent = 'Помилка оновлення';
+                const cachedRates = getCachedData('ratesData');
+                if (cachedRates) {
+                    console.log('Використовую кешовані дані:', cachedRates);
+                    ratesData = cachedRates;
+                    displayRates();
+                    loadingEl.style.display = 'none';
+                    containerEl.style.display = 'block';
+                    lastUpdateEl.textContent = `Останнє оновлення (з кешу): ${new Date().toLocaleString('uk-UA')}`;
+                } else {
+                    loadingEl.style.display = 'none';
+                    errorEl.style.display = 'block';
+                    lastUpdateEl.textContent = 'Помилка оновлення';
+                }
             }
         }
 
@@ -635,6 +663,12 @@
         document.addEventListener('DOMContentLoaded', function() {
             loadAllData();
             startAutoRefresh();
+
+            // Додаємо обробник для кнопки "Спробувати ще раз"
+            document.getElementById('retryLink').addEventListener('click', function(e) {
+                e.preventDefault();
+                loadAllData();
+            });
         });
 
         document.addEventListener('visibilitychange', function() {
