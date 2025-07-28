@@ -241,7 +241,7 @@
             position: absolute;
             top: 10px;
             right: 10px;
-            font-size: 1.5rem;
+            font-size: 2.1rem;
             cursor: pointer;
             color: #333;
         }
@@ -264,6 +264,28 @@
             border: 1px solid #e0e0e0;
             border-radius: 5px;
             font-size: 1rem;
+        }
+
+        .converter-section select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23333' viewBox='0 0 16 16'%3E%3Cpath d='M8 12l-6-6h12z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            padding-right: 30px;
+        }
+
+        .currency-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 5px;
+        }
+
+        .select-currency-flag {
+            width: 24px;
+            height: 18px;
+            vertical-align: middle;
+            margin-right: 8px;
         }
 
         .exchange-rate-info {
@@ -303,11 +325,7 @@
                 min-width: 60px;
             }
 
-            body {
-                padding: 15px;
-            }
-
-            .currency-flag {
+            .currency-flag, .select-currency-flag {
                 width: 20px;
                 height: 15px;
             }
@@ -360,7 +378,7 @@
                 min-width: 50px;
             }
 
-            .currency-flag {
+            .currency-flag, .select-currency-flag {
                 width: 18px;
                 height: 14px;
             }
@@ -806,209 +824,243 @@
             });
         }
 
-               function populateCurrencySelectors() {
-                    const fromSelect = document.getElementById('fromCurrency');
-                    const toSelect = document.getElementById('toCurrency');
-                    
-                    // Сохраняем текущие значения
-                    const currentFrom = fromSelect.value || 'USD';
-                    const currentTo = toSelect.value || 'UAH';
-                    
-                    const currencies = ['UAH', ...ratesData.map(rate => rate.currency)];
-                    
-                    // Очищаем селекторы
-                    fromSelect.innerHTML = '';
-                    toSelect.innerHTML = '';
-                    
-                    // Заполняем fromCurrency всеми валютами
-                    currencies.forEach(currency => {
-                        const option = document.createElement('option');
-                        option.value = currency;
-                        option.textContent = currency;
-                        fromSelect.appendChild(option);
-                    });
-                    
-                    // Устанавливаем значение для fromCurrency
-                    fromSelect.value = currentFrom;
-                    
-                    // Добавляем обработчики событий
-                    fromSelect.onchange = function() {
-                        updateToCurrencyOptions();
-                        updateConversion();
-                    };
-                    
-                    toSelect.onchange = function() {
-                        updateConversion();
-                    };
-                    
-                    // Инициализируем toCurrency на основе выбранного fromCurrency
-                    updateToCurrencyOptions();
-                    
-                    // Устанавливаем значение для toCurrency если возможно
-                    if (Array.from(toSelect.options).some(option => option.value === currentTo)) {
-                        toSelect.value = currentTo;
-                    }
-                    
-                    updateConversion();
+        function populateCurrencySelectors() {
+            const fromSelect = document.getElementById('fromCurrency');
+            const toSelect = document.getElementById('toCurrency');
+            
+            // Сохраняем текущие значения
+            const currentFrom = fromSelect.value || 'USD';
+            const currentTo = toSelect.value || 'UAH';
+            
+            const currencies = ['UAH', ...ratesData.map(rate => rate.currency)];
+            
+            // Очищаем селекторы
+            fromSelect.innerHTML = '';
+            toSelect.innerHTML = '';
+            
+            // Заполняем fromCurrency всеми валютами
+            currencies.forEach(currency => {
+                const option = document.createElement('option');
+                option.value = currency;
+                const currencyCode = getCurrencyCode(currency);
+                const countryCode = currencyCode ? currencyToCountryCode[currencyCode] : null;
+                if (countryCode) {
+                    option.innerHTML = `
+                        <div class="currency-option">
+                            <img src="https://flagcdn.com/${countryCode}.svg" 
+                                 alt="${currencyCode}" 
+                                 class="select-currency-flag"
+                                 onerror="this.style.display='none'">
+                            <span>${escapeHtml(currency)}</span>
+                        </div>
+                    `;
+                } else {
+                    option.textContent = currency;
                 }
+                fromSelect.appendChild(option);
+            });
+            
+            // Устанавливаем значение для fromCurrency
+            fromSelect.value = currentFrom;
+            
+            // Добавляем обработчики событий
+            fromSelect.onchange = function() {
+                updateToCurrencyOptions();
+                updateConversion();
+            };
+            
+            toSelect.onchange = function() {
+                updateConversion();
+            };
+            
+            // Инициализируем toCurrency на основе выбранного fromCurrency
+            updateToCurrencyOptions();
+            
+            // Устанавливаем значение для toCurrency если возможно
+            if (Array.from(toSelect.options).some(option => option.value === currentTo)) {
+                toSelect.value = currentTo;
+            }
+            
+            updateConversion();
+        }
 
-
-                function updateToCurrencyOptions() {
-                    const fromSelect = document.getElementById('fromCurrency');
-                    const toSelect = document.getElementById('toCurrency');
-                    const fromCurrency = fromSelect.value;
-                    
-                    // Сохраняем текущее значение toCurrency
-                    const currentTo = toSelect.value;
-                    
-                    // Очищаем toCurrency
-                    toSelect.innerHTML = '';
-                    
-                    if (fromCurrency === 'UAH') {
-                        // Если выбрана UAH, то доступны все валюты из столбца A (кроме UAH)
-                        ratesData.forEach(rate => {
-                            const option = document.createElement('option');
-                            option.value = rate.currency;
-                            option.textContent = rate.currency;
-                            toSelect.appendChild(option);
-                        });
+        function updateToCurrencyOptions() {
+            const fromSelect = document.getElementById('fromCurrency');
+            const toSelect = document.getElementById('toCurrency');
+            const fromCurrency = fromSelect.value;
+            
+            // Сохраняем текущее значение toCurrency
+            const currentTo = toSelect.value;
+            
+            // Очищаем toCurrency
+            toSelect.innerHTML = '';
+            
+            if (fromCurrency === 'UAH') {
+                // Если выбрана UAH, то доступны все валюты из столбца A (кроме UAH)
+                ratesData.forEach(rate => {
+                    const option = document.createElement('option');
+                    option.value = rate.currency;
+                    const currencyCode = getCurrencyCode(rate.currency);
+                    const countryCode = currencyCode ? currencyToCountryCode[currencyCode] : null;
+                    if (countryCode) {
+                        option.innerHTML = `
+                            <div class="currency-option">
+                                <img src="https://flagcdn.com/${countryCode}.svg" 
+                                     alt="${currencyCode}" 
+                                     class="select-currency-flag"
+                                     onerror="this.style.display='none'">
+                                <span>${escapeHtml(rate.currency)}</span>
+                            </div>
+                        `;
                     } else {
-                        // Если выбрана любая другая валюта, то доступна только UAH
-                        const option = document.createElement('option');
-                        option.value = 'UAH';
-                        option.textContent = 'UAH';
-                        toSelect.appendChild(option);
+                        option.textContent = rate.currency;
                     }
-                    
-                    // Пытаемся восстановить предыдущее значение, если оно доступно
-                    if (Array.from(toSelect.options).some(option => option.value === currentTo)) {
-                        toSelect.value = currentTo;
-                    } else {
-                        // Если предыдущее значение недоступно, выбираем первый доступный вариант
-                        if (toSelect.options.length > 0) {
-                            toSelect.value = toSelect.options[0].value;
-                        }
-                    }
+                    toSelect.appendChild(option);
+                });
+            } else {
+                // Если выбрана любая другая валюта, то доступна только UAH
+                const option = document.createElement('option');
+                option.value = 'UAH';
+                const countryCode = currencyToCountryCode['UAH'];
+                option.innerHTML = `
+                    <div class="currency-option">
+                        <img src="https://flagcdn.com/${countryCode}.svg" 
+                             alt="UAH" 
+                             class="select-currency-flag"
+                             onerror="this.style.display='none'">
+                        <span>UAH</span>
+                    </div>
+                `;
+                toSelect.appendChild(option);
+            }
+            
+            // Пытаемся восстановить предыдущее значение, если оно доступно
+            if (Array.from(toSelect.options).some(option => option.value === currentTo)) {
+                toSelect.value = currentTo;
+            } else {
+                // Если предыдущее значение недоступно, выбираем первый доступный вариант
+                if (toSelect.options.length > 0) {
+                    toSelect.value = toSelect.options[0].value;
                 }
+            }
+        }
 
+        function getExchangeRate(fromCurrency, toCurrency) {
+            if (fromCurrency === toCurrency) return { rate: 1, type: 'none' };
 
-                
-
-                function getExchangeRate(fromCurrency, toCurrency) {
-                    if (fromCurrency === toCurrency) return { rate: 1, type: 'none' };
-
-                    if (fromCurrency === 'UAH') {
-                        // UAH → валюта: обменник продает валюту за гривны
-                        // Используем курс продажи (sell - столбец C)
-                        const rateData = ratesData.find(rate => rate.currency === toCurrency);
-                        if (!rateData) {
-                            console.error(`Курс для валюты ${toCurrency} не найден`);
-                            return { rate: 1, type: 'error' };
-                        }
-                        return { rate: 1 / parseFloat(rateData.sell), type: 'sell_inverted' };
-                    } else if (toCurrency === 'UAH') {
-                        // валюта → UAH: обменник покупает валюту, отдавая гривны
-                        // Используем курс покупки (buy - столбец B)
-                        const rateData = ratesData.find(rate => rate.currency === fromCurrency);
-                        if (!rateData) {
-                            console.error(`Курс для валюты ${fromCurrency} не найден`);
-                            return { rate: 1, type: 'error' };
-                        }
-                        return { rate: parseFloat(rateData.buy), type: 'buy' };
-                    } else {
-                        // Кросс-курсы больше не поддерживаются
-                        console.error('Кросс-курсы не поддерживаются. Обмен возможен только через UAH.');
-                        return { rate: 1, type: 'error' };
-                    }
+            if (fromCurrency === 'UAH') {
+                // UAH → валюта: обменник продает валюту за гривны
+                // Используем курс продажи (sell - столбец C)
+                const rateData = ratesData.find(rate => rate.currency === toCurrency);
+                if (!rateData) {
+                    console.error(`Курс для валюты ${toCurrency} не найден`);
+                    return { rate: 1, type: 'error' };
                 }
+                return { rate: 1 / parseFloat(rateData.sell), type: 'sell_inverted' };
+            } else if (toCurrency === 'UAH') {
+                // валюта → UAH: обменник покупает валюту, отдавая гривны
+                // Используем курс покупки (buy - столбец B)
+                const rateData = ratesData.find(rate => rate.currency === fromCurrency);
+                if (!rateData) {
+                    console.error(`Курс для валюты ${fromCurrency} не найден`);
+                    return { rate: 1, type: 'error' };
+                }
+                return { rate: parseFloat(rateData.buy), type: 'buy' };
+            } else {
+                // Кросс-курсы больше не поддерживаются
+                console.error('Кросс-курсы не поддерживаются. Обмен возможен только через UAH.');
+                return { rate: 1, type: 'error' };
+            }
+        }
 
-               function updateConversion() {
-                        const fromCurrency = document.getElementById('fromCurrency').value;
-                        const toCurrency = document.getElementById('toCurrency').value;
-                        const fromAmount = parseFloat(document.getElementById('fromAmount').value) || 0;
-                        const { rate, type } = getExchangeRate(fromCurrency, toCurrency);
-                        
-                        // Оновлюємо toAmount на основі fromAmount
-                        if (fromAmount > 0) {
-                            document.getElementById('toAmount').value = (fromAmount * rate).toFixed(2);
-                        } else {
-                            document.getElementById('toAmount').value = '';
-                        }
-                        
-                        // Оновлюємо інформацію про курс
-                        const rateInfo = document.getElementById('exchangeRateInfo');
-                        if (fromCurrency === toCurrency) {
-                            rateInfo.textContent = '1:1';
-                        } else if (type === 'buy') {
-                            // валюта → UAH: показываем курс покупки
-                            rateInfo.textContent = `1 ${fromCurrency} = ${rate.toFixed(2)} UAH`;
-                        } else if (type === 'sell_inverted') {
-                            // UAH → валюта: показываем курс продажи
-                            const sellRate = ratesData.find(r => r.currency === toCurrency);
-                            rateInfo.textContent = `1 ${toCurrency} = ${parseFloat(sellRate.sell).toFixed(2)} UAH`;
-                        } else {
-                            rateInfo.textContent = `1 ${fromCurrency} = ${(1/rate).toFixed(4)} ${toCurrency}`;
-                        }
-                    }
+        function updateConversion() {
+            const fromCurrency = document.getElementById('fromCurrency').value;
+            const toCurrency = document.getElementById('toCurrency').value;
+            const fromAmount = parseFloat(document.getElementById('fromAmount').value) || 0;
+            const { rate, type } = getExchangeRate(fromCurrency, toCurrency);
+            
+            // Оновлюємо toAmount на основі fromAmount
+            if (fromAmount > 0) {
+                document.getElementById('toAmount').value = (fromAmount * rate).toFixed(2);
+            } else {
+                document.getElementById('toAmount').value = '';
+            }
+            
+            // Оновлюємо інформацію про курс
+            const rateInfo = document.getElementById('exchangeRateInfo');
+            if (fromCurrency === toCurrency) {
+                rateInfo.textContent = '1:1';
+            } else if (type === 'buy') {
+                // валюта → UAH: показываем курс покупки
+                rateInfo.textContent = `1 ${fromCurrency} = ${rate.toFixed(2)} UAH`;
+            } else if (type === 'sell_inverted') {
+                // UAH → валюта: показываем курс продажи
+                const sellRate = ratesData.find(r => r.currency === toCurrency);
+                rateInfo.textContent = `1 ${toCurrency} = ${parseFloat(sellRate.sell).toFixed(2)} UAH`;
+            } else {
+                rateInfo.textContent = `1 ${fromCurrency} = ${(1/rate).toFixed(4)} ${toCurrency}`;
+            }
+        }
 
-                    function convertFromSource() {
-                        const fromCurrency = document.getElementById('fromCurrency').value;
-                        const toCurrency = document.getElementById('toCurrency').value;
-                        const fromAmount = parseFloat(document.getElementById('fromAmount').value) || 0;
-                        const { rate, type } = getExchangeRate(fromCurrency, toCurrency);
-                        
-                        // Оновлюємо toAmount на основі fromAmount
-                        if (fromAmount > 0) {
-                            document.getElementById('toAmount').value = (fromAmount * rate).toFixed(2);
-                        } else {
-                            document.getElementById('toAmount').value = '';
-                        }
-                        
-                        // Оновлюємо інформацію про курс
-                        const rateInfo = document.getElementById('exchangeRateInfo');
-                        if (fromCurrency === toCurrency) {
-                            rateInfo.textContent = '1:1';
-                        } else if (type === 'buy') {
-                            // валюта → UAH: показываем курс покупки
-                            rateInfo.textContent = `1 ${fromCurrency} = ${rate.toFixed(2)} UAH`;
-                        } else if (type === 'sell_inverted') {
-                            // UAH → валюта: показываем курс продажи
-                            const sellRate = ratesData.find(r => r.currency === toCurrency);
-                            rateInfo.textContent = `1 ${toCurrency} = ${parseFloat(sellRate.sell).toFixed(2)} UAH`;
-                        } else {
-                            rateInfo.textContent = `1 ${fromCurrency} = ${(1/rate).toFixed(4)} ${toCurrency}`;
-                        }
-                    }
+        function convertFromSource() {
+            const fromCurrency = document.getElementById('fromCurrency').value;
+            const toCurrency = document.getElementById('toCurrency').value;
+            const fromAmount = parseFloat(document.getElementById('fromAmount').value) || 0;
+            const { rate, type } = getExchangeRate(fromCurrency, toCurrency);
+            
+            // Оновлюємо toAmount на основі fromAmount
+            if (fromAmount > 0) {
+                document.getElementById('toAmount').value = (fromAmount * rate).toFixed(2);
+            } else {
+                document.getElementById('toAmount').value = '';
+            }
+            
+            // Оновлюємо інформацію про курс
+            const rateInfo = document.getElementById('exchangeRateInfo');
+            if (fromCurrency === toCurrency) {
+                rateInfo.textContent = '1:1';
+            } else if (type === 'buy') {
+                // валюта → UAH: показываем курс покупки
+                rateInfo.textContent = `1 ${fromCurrency} = ${rate.toFixed(2)} UAH`;
+            } else if (type === 'sell_inverted') {
+                // UAH → валюта: показываем курс продажи
+                const sellRate = ratesData.find(r => r.currency === toCurrency);
+                rateInfo.textContent = `1 ${toCurrency} = ${parseFloat(sellRate.sell).toFixed(2)} UAH`;
+            } else {
+                rateInfo.textContent = `1 ${fromCurrency} = ${(1/rate).toFixed(4)} ${toCurrency}`;
+            }
+        }
 
-                function convertFromTarget() {
-                        const fromCurrency = document.getElementById('fromCurrency').value;
-                        const toCurrency = document.getElementById('toCurrency').value;
-                        const toAmount = parseFloat(document.getElementById('toAmount').value) || 0;
-                        const { rate, type } = getExchangeRate(fromCurrency, toCurrency);
-                        
-                        // Оновлюємо fromAmount на основі toAmount
-                        if (toAmount > 0) {
-                            document.getElementById('fromAmount').value = (toAmount / rate).toFixed(2);
-                        } else {
-                            document.getElementById('fromAmount').value = '';
-                        }
-                        
-                        // Оновлюємо інформацію про курс
-                        const rateInfo = document.getElementById('exchangeRateInfo');
-                        if (fromCurrency === toCurrency) {
-                            rateInfo.textContent = '1:1';
-                        } else if (type === 'buy') {
-                            // валюта → UAH: показываем курс покупки
-                            rateInfo.textContent = `1 ${fromCurrency} = ${rate.toFixed(2)} UAH`;
-                        } else if (type === 'sell_inverted') {
-                            // UAH → валюта: показываем курс продажи
-                            const sellRate = ratesData.find(r => r.currency === toCurrency);
-                            rateInfo.textContent = `1 ${toCurrency} = ${parseFloat(sellRate.sell).toFixed(2)} UAH`;
-                        } else {
-                            rateInfo.textContent = `1 ${fromCurrency} = ${(1/rate).toFixed(4)} ${toCurrency}`;
-                        }
-                    }
-                            function openModal() {
+        function convertFromTarget() {
+            const fromCurrency = document.getElementById('fromCurrency').value;
+            const toCurrency = document.getElementById('toCurrency').value;
+            const toAmount = parseFloat(document.getElementById('toAmount').value) || 0;
+            const { rate, type } = getExchangeRate(fromCurrency, toCurrency);
+            
+            // Оновлюємо fromAmount на основі toAmount
+            if (toAmount > 0) {
+                document.getElementById('fromAmount').value = (toAmount / rate).toFixed(2);
+            } else {
+                document.getElementById('fromAmount').value = '';
+            }
+            
+            // Оновлюємо інформацію про курс
+            const rateInfo = document.getElementById('exchangeRateInfo');
+            if (fromCurrency === toCurrency) {
+                rateInfo.textContent = '1:1';
+            } else if (type === 'buy') {
+                // валюта → UAH: показываем курс покупки
+                rateInfo.textContent = `1 ${fromCurrency} = ${rate.toFixed(2)} UAH`;
+            } else if (type === 'sell_inverted') {
+                // UAH → валюта: показываем курс продажи
+                const sellRate = ratesData.find(r => r.currency === toCurrency);
+                rateInfo.textContent = `1 ${toCurrency} = ${parseFloat(sellRate.sell).toFixed(2)} UAH`;
+            } else {
+                rateInfo.textContent = `1 ${fromCurrency} = ${(1/rate).toFixed(4)} ${toCurrency}`;
+            }
+        }
+
+        function openModal() {
             document.getElementById('converterModal').style.display = 'flex';
         }
 
