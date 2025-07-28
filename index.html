@@ -151,6 +151,14 @@
             margin: 20px 0;
         }
 
+        .phone-error {
+            color: #d32f2f;
+            font-size: 0.9rem;
+            margin-top: -5px;
+            margin-bottom: 10px;
+            display: none;
+        }
+
         .currency-cell {
             display: flex;
             align-items: center;
@@ -263,7 +271,6 @@
             gap: 8px;
         }
 
-
         .converter-section select {
             width: 30%;
         }
@@ -283,8 +290,6 @@
             border-radius: 5px;
             font-size: 18px;
         }
-
-        
 
         .converter-flag {
             width: 24px;
@@ -542,11 +547,12 @@
                     </div>
                     <div class="converter-section">
                         <label>Ім'я</label>
-                        <input type="text" id="customerName" placeholder="Введіть ваше ім'я">
+                        <input type="text" id="customerName" placeholder="Введіть ваше ім'я" required>
                     </div>
                     <div class="converter-section">
                         <label>Номер телефону</label>
-                        <input type="tel" id="customerPhone" placeholder="Введіть номер телефону">
+                        <input type="tel" id="customerPhone" placeholder="+380969940090" value="+38" maxlength="12" required>
+                        <div id="phoneError" class="phone-error">Номер телефону має містити +38 та 9 цифр (наприклад, +380969940090)</div>
                     </div>
                     <button class="order-button" onclick="submitOrder()">Замовити</button>
                 </div>
@@ -1065,6 +1071,9 @@
         function openModal() {
             document.getElementById('converterModal').style.display = 'flex';
             updateCurrencyFlags();
+            const phoneInput = document.getElementById('customerPhone');
+            phoneInput.value = '+38';
+            document.getElementById('phoneError').style.display = 'none';
         }
 
         function closeModal() {
@@ -1072,7 +1081,13 @@
             document.getElementById('fromAmount').value = '';
             document.getElementById('toAmount').value = '';
             document.getElementById('customerName').value = '';
-            document.getElementById('customerPhone').value = '';
+            document.getElementById('customerPhone').value = '+38';
+            document.getElementById('phoneError').style.display = 'none';
+        }
+
+        function validatePhoneNumber(phone) {
+            const phoneRegex = /^\+38[0-9]{9}$/;
+            return phoneRegex.test(phone);
         }
 
         async function submitOrder() {
@@ -1082,9 +1097,15 @@
             const toAmount = document.getElementById('toAmount').value;
             const customerName = document.getElementById('customerName').value;
             const customerPhone = document.getElementById('customerPhone').value;
+            const phoneError = document.getElementById('phoneError');
 
             if (!fromAmount || !toAmount || !customerName || !customerPhone) {
                 alert('Будь ласка, заповніть усі поля');
+                return;
+            }
+
+            if (!validatePhoneNumber(customerPhone)) {
+                phoneError.style.display = 'block';
                 return;
             }
 
@@ -1173,6 +1194,25 @@
             document.getElementById('retryLink').addEventListener('click', function(e) {
                 e.preventDefault();
                 loadAllData();
+            });
+
+            // Phone input handling
+            const phoneInput = document.getElementById('customerPhone');
+            phoneInput.addEventListener('input', function(e) {
+                let value = e.target.value;
+                if (!value.startsWith('+38')) {
+                    e.target.value = '+38';
+                } else if (value.length > 3) {
+                    const digits = value.substring(3).replace(/[^0-9]/g, '');
+                    e.target.value = '+38' + digits.substring(0, 9);
+                }
+                document.getElementById('phoneError').style.display = 'none';
+            });
+
+            phoneInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Backspace' && phoneInput.value.length <= 3) {
+                    e.preventDefault();
+                }
             });
         });
 
