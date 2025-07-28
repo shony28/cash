@@ -857,13 +857,13 @@
             
             const rateInfo = document.getElementById('exchangeRateInfo');
             if (fromCurrency === toCurrency) {
-                rateInfo.textContent = '1:1 (без конверсії)';
+                rateInfo.textContent = '1:1';
             } else if (type === 'buy') {
-                rateInfo.textContent = `1 ${fromCurrency} = ${rate.toFixed(2)} UAH (купівля)`;
+                rateInfo.textContent = `1 ${fromCurrency} = ${rate.toFixed(2)} UAH`;
             } else if (type === 'sell') {
-                rateInfo.textContent = `1 ${toCurrency} = ${rate.toFixed(2)} UAH (продаж)`;
+                rateInfo.textContent = `1 ${toCurrency} = ${rate.toFixed(2)} UAH`;
             } else {
-                rateInfo.textContent = `1 ${fromCurrency} = ${(1/rate).toFixed(4)} ${toCurrency} (крос-курс)`;
+                rateInfo.textContent = `1 ${fromCurrency} = ${(1/rate).toFixed(4)} ${toCurrency}`;
             }
         }
 
