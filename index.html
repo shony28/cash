@@ -806,30 +806,108 @@
             });
         }
 
-        function populateCurrencySelectors() {
-            const fromSelect = document.getElementById('fromCurrency');
-            const toSelect = document.getElementById('toCurrency');
-            fromSelect.innerHTML = '';
-            toSelect.innerHTML = '';
+                function populateCurrencySelectors() {
+                    const fromSelect = document.getElementById('fromCurrency');
+                    const toSelect = document.getElementById('toCurrency');
+                    
+                    // Сохраняем текущие значения
+                    const currentFrom = fromSelect.value || 'USD';
+                    const currentTo = toSelect.value || 'UAH';
+                    
+                    const currencies = ['UAH', ...ratesData.map(rate => rate.currency)];
+                    
+                    // Очищаем селекторы
+                    fromSelect.innerHTML = '';
+                    toSelect.innerHTML = '';
+                    
+                    // Заполняем fromCurrency
+                    currencies.forEach(currency => {
+                        const option = document.createElement('option');
+                        option.value = currency;
+                        option.textContent = currency;
+                        fromSelect.appendChild(option);
+                    });
+                    
+                    // Заполняем toCurrency
+                    currencies.forEach(currency => {
+                        const option = document.createElement('option');
+                        option.value = currency;
+                        option.textContent = currency;
+                        toSelect.appendChild(option);
+                    });
+                    
+                    // Устанавливаем значения
+                    fromSelect.value = currentFrom;
+                    toSelect.value = currentTo;
+                    
+                    // Добавляем обработчики событий
+                    fromSelect.onchange = function() {
+                        updateCurrencyOptions();
+                        updateConversion();
+                    };
+                    
+                    toSelect.onchange = function() {
+                        updateCurrencyOptions();
+                        updateConversion();
+                    };
+                    
+                    // Обновляем опции и конверсию
+                    updateCurrencyOptions();
+                    updateConversion();
+                }
 
-            const currencies = ['UAH', ...ratesData.map(rate => rate.currency)];
-
-            currencies.forEach(currency => {
-                const option1 = document.createElement('option');
-                option1.value = currency;
-                option1.textContent = currency;
-                fromSelect.appendChild(option1);
-
-                const option2 = document.createElement('option');
-                option2.value = currency;
-                option2.textContent = currency;
-                toSelect.appendChild(option2);
-            });
-
-            fromSelect.value = 'USD';
-            toSelect.value = 'UAH';
-            updateConversion();
-        }
+                function updateCurrencyOptions() {
+                    const fromSelect = document.getElementById('fromCurrency');
+                    const toSelect = document.getElementById('toCurrency');
+                    const fromValue = fromSelect.value;
+                    const toValue = toSelect.value;
+                    
+                    // Обновляем опции в fromCurrency
+                    Array.from(fromSelect.options).forEach(option => {
+                        if (option.value === toValue && option.value !== fromValue) {
+                            option.style.display = 'none';
+                        } else {
+                            option.style.display = 'block';
+                        }
+                    });
+                    
+                    // Обновляем опции в toCurrency
+                    Array.from(toSelect.options).forEach(option => {
+                        if (option.value === fromValue && option.value !== toValue) {
+                            option.style.display = 'none';
+                        } else {
+                            option.style.display = 'block';
+                        }
+                    });
+                    
+                    // Если текущие значения одинаковые, автоматически меняем одно из них
+                    if (fromValue === toValue) {
+                        const currencies = ['UAH', ...ratesData.map(rate => rate.currency)];
+                        const availableCurrencies = currencies.filter(curr => curr !== fromValue);
+                        
+                        if (availableCurrencies.length > 0) {
+                            // Меняем toCurrency на первую доступную валюту
+                            toSelect.value = availableCurrencies[0];
+                            
+                            // Обновляем видимость опций после изменения
+                            Array.from(fromSelect.options).forEach(option => {
+                                if (option.value === toSelect.value) {
+                                    option.style.display = 'none';
+                                } else {
+                                    option.style.display = 'block';
+                                }
+                            });
+                            
+                            Array.from(toSelect.options).forEach(option => {
+                                if (option.value === fromSelect.value) {
+                                    option.style.display = 'none';
+                                } else {
+                                    option.style.display = 'block';
+                                }
+                            });
+                        }
+                    }
+                }
 
                 function getExchangeRate(fromCurrency, toCurrency) {
                     if (fromCurrency === toCurrency) return { rate: 1, type: 'none' };
