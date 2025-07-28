@@ -847,36 +847,53 @@
             }
         }
 
-        function updateConversion() {
-            const fromCurrency = document.getElementById('fromCurrency').value;
-            const toCurrency = document.getElementById('toCurrency').value;
-            const fromAmount = parseFloat(document.getElementById('fromAmount').value) || 0;
-            const { rate, type } = getExchangeRate(fromCurrency, toCurrency);
-            
-            document.getElementById('toAmount').value = (fromAmount * rate).toFixed(2);
-            
-            const rateInfo = document.getElementById('exchangeRateInfo');
-            if (fromCurrency === toCurrency) {
-                rateInfo.textContent = '1:1';
-            } else if (type === 'buy') {
-                rateInfo.textContent = `1 ${fromCurrency} = ${rate.toFixed(2)} UAH`;
-            } else if (type === 'sell') {
-                rateInfo.textContent = `1 ${toCurrency} = ${rate.toFixed(2)} UAH`;
-            } else {
-                rateInfo.textContent = `1 ${fromCurrency} = ${(1/rate).toFixed(4)} ${toCurrency}`;
+            function updateConversion() {
+                const fromCurrency = document.getElementById('fromCurrency').value;
+                const toCurrency = document.getElementById('toCurrency').value;
+                const fromAmount = parseFloat(document.getElementById('fromAmount').value) || 0;
+                const { rate, type } = getExchangeRate(fromCurrency, toCurrency);
+                
+                // Оновлюємо toAmount на основі fromAmount
+                if (fromAmount > 0) {
+                    document.getElementById('toAmount').value = (fromAmount * rate).toFixed(2);
+                }
+                
+                // Оновлюємо інформацію про курс
+                const rateInfo = document.getElementById('exchangeRateInfo');
+                if (fromCurrency === toCurrency) {
+                    rateInfo.textContent = '1:1';
+                } else if (type === 'buy') {
+                    rateInfo.textContent = `1 ${fromCurrency} = ${rate.toFixed(2)} UAH`;
+                } else if (type === 'sell') {
+                    rateInfo.textContent = `1 ${toCurrency} = ${rate.toFixed(2)} UAH`;
+                } else {
+                    rateInfo.textContent = `1 ${fromCurrency} = ${(1/rate).toFixed(4)} ${toCurrency}`;
+                }
             }
-        }
 
-        function convertFromTarget() {
-            const fromCurrency = document.getElementById('fromCurrency').value;
-            const toCurrency = document.getElementById('toCurrency').value;
-            const toAmount = parseFloat(document.getElementById('toAmount').value) || 0;
-            const { rate } = getExchangeRate(fromCurrency, toCurrency);
-            
-            document.getElementById('fromAmount').value = (toAmount / rate).toFixed(2);
-            updateConversion();
-        }
-
+            function convertFromTarget() {
+                const fromCurrency = document.getElementById('fromCurrency').value;
+                const toCurrency = document.getElementById('toCurrency').value;
+                const toAmount = parseFloat(document.getElementById('toAmount').value) || 0;
+                const { rate } = getExchangeRate(fromCurrency, toCurrency);
+                
+                // Оновлюємо fromAmount на основі toAmount
+                if (toAmount > 0) {
+                    document.getElementById('fromAmount').value = (toAmount / rate).toFixed(2);
+                }
+                
+                // Оновлюємо інформацію про курс
+                const rateInfo = document.getElementById('exchangeRateInfo');
+                if (fromCurrency === toCurrency) {
+                    rateInfo.textContent = '1:1';
+                } else if (type === 'buy') {
+                    rateInfo.textContent = `1 ${fromCurrency} = ${rate.toFixed(2)} UAH`;
+                } else if (type === 'sell') {
+                    rateInfo.textContent = `1 ${toCurrency} = ${rate.toFixed(2)} UAH`;
+                } else {
+                    rateInfo.textContent = `1 ${fromCurrency} = ${(1/rate).toFixed(4)} ${toCurrency}`;
+                }
+            }
         function openModal() {
             document.getElementById('converterModal').style.display = 'flex';
         }
