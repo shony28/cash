@@ -836,14 +836,14 @@
 
             if (fromCurrency === 'UAH') {
                 const rateData = ratesData.find(rate => rate.currency === toCurrency);
-                return { rate: parseFloat(rateData.buy), type: 'buy' };
+                return { rate: parseFloat(rateData.sell), type: 'sell' }; // Exchanger sells foreign currency
             } else if (toCurrency === 'UAH') {
                 const rateData = ratesData.find(rate => rate.currency === fromCurrency);
-                return { rate: parseFloat(rateData.sell), type: 'sell' };
+                return { rate: parseFloat(rateData.buy), type: 'buy' }; // Exchanger buys foreign currency
             } else {
                 const fromRate = ratesData.find(rate => rate.currency === fromCurrency);
                 const toRate = ratesData.find(rate => rate.currency === toCurrency);
-                return { rate: parseFloat(fromRate.sell) / parseFloat(toRate.buy), type: 'cross' };
+                return { rate: parseFloat(fromRate.buy) / parseFloat(toRate.sell), type: 'cross' };
             }
         }
 
@@ -859,16 +859,12 @@
             if (fromCurrency === toCurrency) {
                 rateInfo.textContent = '1:1 (без конверсії)';
             } else if (type === 'buy') {
-                rateInfo.textContent = `1 ${toCurrency} = ${rate.toFixed(2)} UAH (купівля)`;
+                rateInfo.textContent = `1 ${fromCurrency} = ${rate.toFixed(2)} UAH (купівля)`;
             } else if (type === 'sell') {
-                rateInfo.textContent = `1 ${fromCurrency} = ${rate.toFixed(2)} UAH (продаж)`;
+                rateInfo.textContent = `1 ${toCurrency} = ${rate.toFixed(2)} UAH (продаж)`;
             } else {
                 rateInfo.textContent = `1 ${fromCurrency} = ${(1/rate).toFixed(4)} ${toCurrency} (крос-курс)`;
             }
-        }
-
-        function convertFromSource() {
-            updateConversion();
         }
 
         function convertFromTarget() {
