@@ -245,7 +245,7 @@
             position: absolute;
             top: 10px;
             right: 10px;
-            font-size: 1.5rem;
+            font-size: 34px;
             cursor: pointer;
             color: #333;
         }
@@ -263,14 +263,28 @@
             gap: 8px;
         }
 
-        .converter-section select, .converter-section input {
+
+        .converter-section select {
+            width: 30%;
+        }
+
+        .converter-section input {
+            width: 66%;
+        }
+
+        .converter-section input:not(#fromAmount):not(#toAmount) {
             width: 100%;
+        }
+
+        .converter-section select, .converter-section input {
             padding: 10px;
             margin-bottom: 10px;
             border: 1px solid #e0e0e0;
             border-radius: 5px;
-            font-size: 1rem;
+            font-size: 18px;
         }
+
+        
 
         .converter-flag {
             width: 24px;
@@ -1077,8 +1091,8 @@
             const { rate, type } = getExchangeRate(fromCurrency, toCurrency);
             const message = `
 Замовлення обміну валют:
-Віддаєте: ${fromAmount} ${fromCurrency}
-Отримуєте: ${toAmount} ${toCurrency}
+Отримуєте: ${fromAmount} ${fromCurrency}
+Віддаєте: ${toAmount} ${toCurrency}
 Курс: ${rate.toFixed(2)} (${type === 'buy' ? 'купівля' : type === 'sell' ? 'продаж' : 'крос-курс'})
 Ім'я: ${customerName}
 Телефон: ${customerPhone}
