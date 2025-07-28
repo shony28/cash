@@ -842,148 +842,49 @@
                     
                     // Добавляем обработчики событий
                     fromSelect.onchange = function() {
-                        updateCurrencyOptionsRestricted();
+                        handleCurrencyChange('from');
                         updateConversion();
                     };
                     
                     toSelect.onchange = function() {
-                        updateCurrencyOptionsRestricted();
+                        handleCurrencyChange('to');
                         updateConversion();
                     };
                     
-                    // Обновляем опции и конверсию
-                    updateCurrencyOptionsRestricted();
+                    // Проверяем на дублирование при инициализации
+                    if (fromSelect.value === toSelect.value) {
+                        handleCurrencyChange('from');
+                    }
+                    
                     updateConversion();
                 }
 
-                function updateCurrencyOptionsRestricted() {
+                
+
+                function handleCurrencyChange(changedSelector) {
                     const fromSelect = document.getElementById('fromCurrency');
                     const toSelect = document.getElementById('toCurrency');
-                    const fromValue = fromSelect.value;
-                    const toValue = toSelect.value;
+                    const currencies = ['UAH', ...ratesData.map(rate => rate.currency)];
                     
-                    // Если выбрана UAH в одном из селекторов
-                    if (fromValue === 'UAH') {
-                        // Если "от" = UAH, то "к" должно быть любой валютой кроме UAH
-                        Array.from(toSelect.options).forEach(option => {
-                            if (option.value === 'UAH') {
-                                option.style.display = 'none';
-                            } else {
-                                option.style.display = 'block';
+                    // Если валюты одинаковые, автоматически меняем другую
+                    if (fromSelect.value === toSelect.value) {
+                        if (changedSelector === 'from') {
+                            // Изменился fromCurrency, меняем toCurrency
+                            const availableCurrencies = currencies.filter(curr => curr !== fromSelect.value);
+                            if (availableCurrencies.length > 0) {
+                                toSelect.value = availableCurrencies[0];
                             }
-                        });
-                        
-                        // Если в "к" также выбрана UAH, автоматически переключаем на первую доступную валюту
-                        if (toValue === 'UAH') {
-                            const firstCurrency = ratesData.length > 0 ? ratesData[0].currency : 'USD';
-                            toSelect.value = firstCurrency;
+                        } else {
+                            // Изменился toCurrency, меняем fromCurrency
+                            const availableCurrencies = currencies.filter(curr => curr !== toSelect.value);
+                            if (availableCurrencies.length > 0) {
+                                fromSelect.value = availableCurrencies[0];
+                            }
                         }
-                        
-                        // В "от" показываем только UAH
-                        Array.from(fromSelect.options).forEach(option => {
-                            if (option.value === 'UAH') {
-                                option.style.display = 'block';
-                            } else {
-                                option.style.display = 'none';
-                            }
-                        });
-                        
-                    } else if (toValue === 'UAH') {
-                        // Если "к" = UAH, то "от" должно быть любой валютой кроме UAH
-                        Array.from(fromSelect.options).forEach(option => {
-                            if (option.value === 'UAH') {
-                                option.style.display = 'none';
-                            } else {
-                                option.style.display = 'block';
-                            }
-                        });
-                        
-                        // В "к" показываем только UAH
-                        Array.from(toSelect.options).forEach(option => {
-                            if (option.value === 'UAH') {
-                                option.style.display = 'block';
-                            } else {
-                                option.style.display = 'none';
-                            }
-                        });
-                        
-                    } else {
-                        // Если ни в одном селекторе нет UAH, принудительно устанавливаем UAH в "к"
-                        toSelect.value = 'UAH';
-                        
-                        // Обновляем видимость опций
-                        Array.from(fromSelect.options).forEach(option => {
-                            if (option.value === 'UAH') {
-                                option.style.display = 'none';
-                            } else {
-                                option.style.display = 'block';
-                            }
-                        });
-                        
-                        Array.from(toSelect.options).forEach(option => {
-                            if (option.value === 'UAH') {
-                                option.style.display = 'block';
-                            } else {
-                                option.style.display = 'none';
-                            }
-                        });
                     }
                 }
 
-
-
-                function updateCurrencyOptions() {
-                    const fromSelect = document.getElementById('fromCurrency');
-                    const toSelect = document.getElementById('toCurrency');
-                    const fromValue = fromSelect.value;
-                    const toValue = toSelect.value;
-                    
-                    // Обновляем опции в fromCurrency
-                    Array.from(fromSelect.options).forEach(option => {
-                        if (option.value === toValue && option.value !== fromValue) {
-                            option.style.display = 'none';
-                        } else {
-                            option.style.display = 'block';
-                        }
-                    });
-                    
-                    // Обновляем опции в toCurrency
-                    Array.from(toSelect.options).forEach(option => {
-                        if (option.value === fromValue && option.value !== toValue) {
-                            option.style.display = 'none';
-                        } else {
-                            option.style.display = 'block';
-                        }
-                    });
-                    
-                    // Если текущие значения одинаковые, автоматически меняем одно из них
-                    if (fromValue === toValue) {
-                        const currencies = ['UAH', ...ratesData.map(rate => rate.currency)];
-                        const availableCurrencies = currencies.filter(curr => curr !== fromValue);
-                        
-                        if (availableCurrencies.length > 0) {
-                            // Меняем toCurrency на первую доступную валюту
-                            toSelect.value = availableCurrencies[0];
-                            
-                            // Обновляем видимость опций после изменения
-                            Array.from(fromSelect.options).forEach(option => {
-                                if (option.value === toSelect.value) {
-                                    option.style.display = 'none';
-                                } else {
-                                    option.style.display = 'block';
-                                }
-                            });
-                            
-                            Array.from(toSelect.options).forEach(option => {
-                                if (option.value === fromSelect.value) {
-                                    option.style.display = 'none';
-                                } else {
-                                    option.style.display = 'block';
-                                }
-                            });
-                        }
-                    }
-                }
+                
 
                 function getExchangeRate(fromCurrency, toCurrency) {
                     if (fromCurrency === toCurrency) return { rate: 1, type: 'none' };
