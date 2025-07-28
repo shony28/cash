@@ -875,11 +875,13 @@
                 const fromCurrency = document.getElementById('fromCurrency').value;
                 const toCurrency = document.getElementById('toCurrency').value;
                 const toAmount = parseFloat(document.getElementById('toAmount').value) || 0;
-                const { rate } = getExchangeRate(fromCurrency, toCurrency);
+                const { rate, type } = getExchangeRate(fromCurrency, toCurrency);
                 
                 // Оновлюємо fromAmount на основі toAmount
                 if (toAmount > 0) {
                     document.getElementById('fromAmount').value = (toAmount / rate).toFixed(2);
+                } else {
+                    document.getElementById('fromAmount').value = '';
                 }
                 
                 // Оновлюємо інформацію про курс
