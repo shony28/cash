@@ -820,7 +820,7 @@
                     fromSelect.innerHTML = '';
                     toSelect.innerHTML = '';
                     
-                    // Заполняем fromCurrency
+                    // Заполняем fromCurrency всеми валютами
                     currencies.forEach(currency => {
                         const option = document.createElement('option');
                         option.value = currency;
@@ -828,61 +828,69 @@
                         fromSelect.appendChild(option);
                     });
                     
-                    // Заполняем toCurrency
-                    currencies.forEach(currency => {
-                        const option = document.createElement('option');
-                        option.value = currency;
-                        option.textContent = currency;
-                        toSelect.appendChild(option);
-                    });
-                    
-                    // Устанавливаем значения
+                    // Устанавливаем значение для fromCurrency
                     fromSelect.value = currentFrom;
-                    toSelect.value = currentTo;
                     
                     // Добавляем обработчики событий
                     fromSelect.onchange = function() {
-                        handleCurrencyChange('from');
+                        updateToCurrencyOptions();
                         updateConversion();
                     };
                     
                     toSelect.onchange = function() {
-                        handleCurrencyChange('to');
                         updateConversion();
                     };
                     
-                    // Проверяем на дублирование при инициализации
-                    if (fromSelect.value === toSelect.value) {
-                        handleCurrencyChange('from');
+                    // Инициализируем toCurrency на основе выбранного fromCurrency
+                    updateToCurrencyOptions();
+                    
+                    // Устанавливаем значение для toCurrency если возможно
+                    if (Array.from(toSelect.options).some(option => option.value === currentTo)) {
+                        toSelect.value = currentTo;
                     }
                     
                     updateConversion();
                 }
 
-                
 
-                function handleCurrencyChange(changedSelector) {
+                function updateToCurrencyOptions() {
                     const fromSelect = document.getElementById('fromCurrency');
                     const toSelect = document.getElementById('toCurrency');
-                    const currencies = ['UAH', ...ratesData.map(rate => rate.currency)];
+                    const fromCurrency = fromSelect.value;
                     
-                    // Если валюты одинаковые, автоматически меняем другую
-                    if (fromSelect.value === toSelect.value) {
-                        if (changedSelector === 'from') {
-                            // Изменился fromCurrency, меняем toCurrency
-                            const availableCurrencies = currencies.filter(curr => curr !== fromSelect.value);
-                            if (availableCurrencies.length > 0) {
-                                toSelect.value = availableCurrencies[0];
-                            }
-                        } else {
-                            // Изменился toCurrency, меняем fromCurrency
-                            const availableCurrencies = currencies.filter(curr => curr !== toSelect.value);
-                            if (availableCurrencies.length > 0) {
-                                fromSelect.value = availableCurrencies[0];
-                            }
+                    // Сохраняем текущее значение toCurrency
+                    const currentTo = toSelect.value;
+                    
+                    // Очищаем toCurrency
+                    toSelect.innerHTML = '';
+                    
+                    if (fromCurrency === 'UAH') {
+                        // Если выбрана UAH, то доступны все валюты из столбца A (кроме UAH)
+                        ratesData.forEach(rate => {
+                            const option = document.createElement('option');
+                            option.value = rate.currency;
+                            option.textContent = rate.currency;
+                            toSelect.appendChild(option);
+                        });
+                    } else {
+                        // Если выбрана любая другая валюта, то доступна только UAH
+                        const option = document.createElement('option');
+                        option.value = 'UAH';
+                        option.textContent = 'UAH';
+                        toSelect.appendChild(option);
+                    }
+                    
+                    // Пытаемся восстановить предыдущее значение, если оно доступно
+                    if (Array.from(toSelect.options).some(option => option.value === currentTo)) {
+                        toSelect.value = currentTo;
+                    } else {
+                        // Если предыдущее значение недоступно, выбираем первый доступный вариант
+                        if (toSelect.options.length > 0) {
+                            toSelect.value = toSelect.options[0].value;
                         }
                     }
                 }
+
 
                 
 
