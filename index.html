@@ -806,7 +806,7 @@
             });
         }
 
-                function populateCurrencySelectors() {
+               function populateCurrencySelectors() {
                     const fromSelect = document.getElementById('fromCurrency');
                     const toSelect = document.getElementById('toCurrency');
                     
@@ -842,19 +842,95 @@
                     
                     // Добавляем обработчики событий
                     fromSelect.onchange = function() {
-                        updateCurrencyOptions();
+                        updateCurrencyOptionsRestricted();
                         updateConversion();
                     };
                     
                     toSelect.onchange = function() {
-                        updateCurrencyOptions();
+                        updateCurrencyOptionsRestricted();
                         updateConversion();
                     };
                     
                     // Обновляем опции и конверсию
-                    updateCurrencyOptions();
+                    updateCurrencyOptionsRestricted();
                     updateConversion();
                 }
+
+                function updateCurrencyOptionsRestricted() {
+                    const fromSelect = document.getElementById('fromCurrency');
+                    const toSelect = document.getElementById('toCurrency');
+                    const fromValue = fromSelect.value;
+                    const toValue = toSelect.value;
+                    
+                    // Если выбрана UAH в одном из селекторов
+                    if (fromValue === 'UAH') {
+                        // Если "от" = UAH, то "к" должно быть любой валютой кроме UAH
+                        Array.from(toSelect.options).forEach(option => {
+                            if (option.value === 'UAH') {
+                                option.style.display = 'none';
+                            } else {
+                                option.style.display = 'block';
+                            }
+                        });
+                        
+                        // Если в "к" также выбрана UAH, автоматически переключаем на первую доступную валюту
+                        if (toValue === 'UAH') {
+                            const firstCurrency = ratesData.length > 0 ? ratesData[0].currency : 'USD';
+                            toSelect.value = firstCurrency;
+                        }
+                        
+                        // В "от" показываем только UAH
+                        Array.from(fromSelect.options).forEach(option => {
+                            if (option.value === 'UAH') {
+                                option.style.display = 'block';
+                            } else {
+                                option.style.display = 'none';
+                            }
+                        });
+                        
+                    } else if (toValue === 'UAH') {
+                        // Если "к" = UAH, то "от" должно быть любой валютой кроме UAH
+                        Array.from(fromSelect.options).forEach(option => {
+                            if (option.value === 'UAH') {
+                                option.style.display = 'none';
+                            } else {
+                                option.style.display = 'block';
+                            }
+                        });
+                        
+                        // В "к" показываем только UAH
+                        Array.from(toSelect.options).forEach(option => {
+                            if (option.value === 'UAH') {
+                                option.style.display = 'block';
+                            } else {
+                                option.style.display = 'none';
+                            }
+                        });
+                        
+                    } else {
+                        // Если ни в одном селекторе нет UAH, принудительно устанавливаем UAH в "к"
+                        toSelect.value = 'UAH';
+                        
+                        // Обновляем видимость опций
+                        Array.from(fromSelect.options).forEach(option => {
+                            if (option.value === 'UAH') {
+                                option.style.display = 'none';
+                            } else {
+                                option.style.display = 'block';
+                            }
+                        });
+                        
+                        Array.from(toSelect.options).forEach(option => {
+                            if (option.value === 'UAH') {
+                                option.style.display = 'block';
+                            } else {
+                                option.style.display = 'none';
+                            }
+                        });
+                    }
+                }
+
+
 
                 function updateCurrencyOptions() {
                     const fromSelect = document.getElementById('fromCurrency');
@@ -916,17 +992,24 @@
                         // UAH → валюта: обменник продает валюту за гривны
                         // Используем курс продажи (sell - столбец C)
                         const rateData = ratesData.find(rate => rate.currency === toCurrency);
+                        if (!rateData) {
+                            console.error(`Курс для валюты ${toCurrency} не найден`);
+                            return { rate: 1, type: 'error' };
+                        }
                         return { rate: 1 / parseFloat(rateData.sell), type: 'sell_inverted' };
                     } else if (toCurrency === 'UAH') {
                         // валюта → UAH: обменник покупает валюту, отдавая гривны
                         // Используем курс покупки (buy - столбец B)
                         const rateData = ratesData.find(rate => rate.currency === fromCurrency);
+                        if (!rateData) {
+                            console.error(`Курс для валюты ${fromCurrency} не найден`);
+                            return { rate: 1, type: 'error' };
+                        }
                         return { rate: parseFloat(rateData.buy), type: 'buy' };
                     } else {
-                        // валюта → валюта: кросс-курс
-                        const fromRate = ratesData.find(rate => rate.currency === fromCurrency);
-                        const toRate = ratesData.find(rate => rate.currency === toCurrency);
-                        return { rate: parseFloat(fromRate.buy) / parseFloat(toRate.sell), type: 'cross' };
+                        // Кросс-курсы больше не поддерживаются
+                        console.error('Кросс-курсы не поддерживаются. Обмен возможен только через UAH.');
+                        return { rate: 1, type: 'error' };
                     }
                 }
 
