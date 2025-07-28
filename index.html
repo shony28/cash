@@ -551,8 +551,8 @@
                     </div>
                     <div class="converter-section">
                         <label>Номер телефону</label>
-                        <input type="tel" id="customerPhone" placeholder="+380969940090" value="+38" maxlength="12" required>
-                        <div id="phoneError" class="phone-error">Номер телефону має містити +38 та 9 цифр (наприклад, +380969940090)</div>
+                        <input type="tel" id="customerPhone" placeholder="+380969940090" value="+38" maxlength="13" required>
+                        <div id="phoneError" class="phone-error">Номер телефону має містити +38 та 10 цифр</div>
                     </div>
                     <button class="order-button" onclick="submitOrder()">Замовити</button>
                 </div>
@@ -1086,7 +1086,7 @@
         }
 
         function validatePhoneNumber(phone) {
-            const phoneRegex = /^\+38[0-9]{9}$/;
+            const phoneRegex = /^\+38[0-9]{10}$/;
             return phoneRegex.test(phone);
         }
 
