@@ -535,23 +535,34 @@
         async function getSpreadsheetId() {
             try {
                 const urlParams = new URLSearchParams(window.location.search);
-                const alias = urlParams.get('id') || 'default';
-                console.log('Завантаження ID таблиці для alias:', alias);
+                const idParam = urlParams.get('id') || 'default';
+                console.log('Обробка параметра id:', idParam);
 
+                // Перевіряємо, чи idParam виглядає як SPREADSHEET_ID (Google Spreadsheet ID зазвичай 44 символи, містить літери, цифри та _-)
+                const isSpreadsheetId = /^[A-Za-z0-9_-]{40,}$/.test(idParam);
+
+                if (isSpreadsheetId) {
+                    console.log('Параметр id розпізнано як SPREADSHEET_ID');
+                    SPREADSHEET_ID = idParam;
+                    return;
+                }
+
+                // Якщо не SPREADSHEET_ID, перевіряємо як alias
+                console.log('Перевірка id як alias:', idParam);
                 const response = await fetchWithRetry(ALIASES_CSV_URL);
                 const csvText = response;
                 
                 const rows = csvText.split('\n').slice(1);
                 for (const row of rows) {
                     const [csvAlias, spreadsheetId] = row.split(',').map(item => item.trim());
-                    if (csvAlias === alias && spreadsheetId) {
+                    if (csvAlias === idParam && spreadsheetId) {
                         SPREADSHEET_ID = spreadsheetId;
-                        console.log('Знайдено SPREADSHEET_ID');
+                        console.log('Знайдено SPREADSHEET_ID для alias:', idParam);
                         return;
                     }
                 }
                 
-                throw new Error(`ID таблиці для alias "${alias}" не знайдено`);
+                throw new Error(`ID таблиці для alias "${idParam}" не знайдено, і параметр не є SPREADSHEET_ID`);
             } catch (error) {
                 console.error('Помилка отримання SPREADSHEET_ID:', error);
                 throw error;
@@ -751,11 +762,11 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             const urlParams = new URLSearchParams(window.location.search);
-            const alias = urlParams.get('id');
+            const idParam = urlParams.get('id');
             const landingPage = document.getElementById('landingPage');
             const mainContent = document.getElementById('mainContent');
 
-            if (!alias) {
+            if (!idParam) {
                 landingPage.style.display = 'block';
                 mainContent.style.display = 'none';
             } else {
