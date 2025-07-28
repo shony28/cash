@@ -831,114 +831,114 @@
             updateConversion();
         }
 
-            function getExchangeRate(fromCurrency, toCurrency) {
-                if (fromCurrency === toCurrency) return { rate: 1, type: 'none' };
+                function getExchangeRate(fromCurrency, toCurrency) {
+                    if (fromCurrency === toCurrency) return { rate: 1, type: 'none' };
 
-                if (fromCurrency === 'UAH') {
-                    // UAH → валюта: обменник покупает валюту, отдавая гривны
-                    // Используем курс покупки (buy), но обращаем его (1/buy)
-                    const rateData = ratesData.find(rate => rate.currency === toCurrency);
-                    return { rate: 1 / parseFloat(rateData.buy), type: 'buy_inverted' };
-                } else if (toCurrency === 'UAH') {
-                    // валюта → UAH: обменник продает валюту за гривны
-                    // Используем курс продажи (sell)
-                    const rateData = ratesData.find(rate => rate.currency === fromCurrency);
-                    return { rate: parseFloat(rateData.sell), type: 'sell' };
-                } else {
-                    // валюта → валюта: кросс-курс
-                    const fromRate = ratesData.find(rate => rate.currency === fromCurrency);
-                    const toRate = ratesData.find(rate => rate.currency === toCurrency);
-                    return { rate: parseFloat(fromRate.sell) / parseFloat(toRate.buy), type: 'cross' };
-                }
-            }
-
-                function updateConversion() {
-                    const fromCurrency = document.getElementById('fromCurrency').value;
-                    const toCurrency = document.getElementById('toCurrency').value;
-                    const fromAmount = parseFloat(document.getElementById('fromAmount').value) || 0;
-                    const { rate, type } = getExchangeRate(fromCurrency, toCurrency);
-                    
-                    // Оновлюємо toAmount на основі fromAmount
-                    if (fromAmount > 0) {
-                        document.getElementById('toAmount').value = (fromAmount * rate).toFixed(2);
+                    if (fromCurrency === 'UAH') {
+                        // UAH → валюта: обменник продает валюту за гривны
+                        // Используем курс продажи (sell - столбец C)
+                        const rateData = ratesData.find(rate => rate.currency === toCurrency);
+                        return { rate: 1 / parseFloat(rateData.sell), type: 'sell_inverted' };
+                    } else if (toCurrency === 'UAH') {
+                        // валюта → UAH: обменник покупает валюту, отдавая гривны
+                        // Используем курс покупки (buy - столбец B)
+                        const rateData = ratesData.find(rate => rate.currency === fromCurrency);
+                        return { rate: parseFloat(rateData.buy), type: 'buy' };
                     } else {
-                        document.getElementById('toAmount').value = '';
-                    }
-                    
-                    // Оновлюємо інформацію про курс
-                    const rateInfo = document.getElementById('exchangeRateInfo');
-                    if (fromCurrency === toCurrency) {
-                        rateInfo.textContent = '1:1';
-                    } else if (type === 'sell') {
-                        // валюта → UAH: показываем курс продажи
-                        rateInfo.textContent = `1 ${fromCurrency} = ${rate.toFixed(2)} UAH`;
-                    } else if (type === 'buy_inverted') {
-                        // UAH → валюта: показываем курс покупки
-                        const buyRate = ratesData.find(r => r.currency === toCurrency);
-                        rateInfo.textContent = `1 ${toCurrency} = ${parseFloat(buyRate.buy).toFixed(2)} UAH`;
-                    } else {
-                        rateInfo.textContent = `1 ${fromCurrency} = ${(1/rate).toFixed(4)} ${toCurrency}`;
+                        // валюта → валюта: кросс-курс
+                        const fromRate = ratesData.find(rate => rate.currency === fromCurrency);
+                        const toRate = ratesData.find(rate => rate.currency === toCurrency);
+                        return { rate: parseFloat(fromRate.buy) / parseFloat(toRate.sell), type: 'cross' };
                     }
                 }
 
-                function convertFromSource() {
-                    const fromCurrency = document.getElementById('fromCurrency').value;
-                    const toCurrency = document.getElementById('toCurrency').value;
-                    const fromAmount = parseFloat(document.getElementById('fromAmount').value) || 0;
-                    const { rate, type } = getExchangeRate(fromCurrency, toCurrency);
-                    
-                    // Оновлюємо toAmount на основі fromAmount
-                    if (fromAmount > 0) {
-                        document.getElementById('toAmount').value = (fromAmount * rate).toFixed(2);
-                    } else {
-                        document.getElementById('toAmount').value = '';
+               function updateConversion() {
+                        const fromCurrency = document.getElementById('fromCurrency').value;
+                        const toCurrency = document.getElementById('toCurrency').value;
+                        const fromAmount = parseFloat(document.getElementById('fromAmount').value) || 0;
+                        const { rate, type } = getExchangeRate(fromCurrency, toCurrency);
+                        
+                        // Оновлюємо toAmount на основі fromAmount
+                        if (fromAmount > 0) {
+                            document.getElementById('toAmount').value = (fromAmount * rate).toFixed(2);
+                        } else {
+                            document.getElementById('toAmount').value = '';
+                        }
+                        
+                        // Оновлюємо інформацію про курс
+                        const rateInfo = document.getElementById('exchangeRateInfo');
+                        if (fromCurrency === toCurrency) {
+                            rateInfo.textContent = '1:1';
+                        } else if (type === 'buy') {
+                            // валюта → UAH: показываем курс покупки
+                            rateInfo.textContent = `1 ${fromCurrency} = ${rate.toFixed(2)} UAH`;
+                        } else if (type === 'sell_inverted') {
+                            // UAH → валюта: показываем курс продажи
+                            const sellRate = ratesData.find(r => r.currency === toCurrency);
+                            rateInfo.textContent = `1 ${toCurrency} = ${parseFloat(sellRate.sell).toFixed(2)} UAH`;
+                        } else {
+                            rateInfo.textContent = `1 ${fromCurrency} = ${(1/rate).toFixed(4)} ${toCurrency}`;
+                        }
                     }
-                    
-                    // Оновлюємо інформацію про курс
-                    const rateInfo = document.getElementById('exchangeRateInfo');
-                    if (fromCurrency === toCurrency) {
-                        rateInfo.textContent = '1:1';
-                    } else if (type === 'sell') {
-                        // валюта → UAH: показываем курс продажи
-                        rateInfo.textContent = `1 ${fromCurrency} = ${rate.toFixed(2)} UAH`;
-                    } else if (type === 'buy_inverted') {
-                        // UAH → валюта: показываем курс покупки
-                        const buyRate = ratesData.find(r => r.currency === toCurrency);
-                        rateInfo.textContent = `1 ${toCurrency} = ${parseFloat(buyRate.buy).toFixed(2)} UAH`;
-                    } else {
-                        rateInfo.textContent = `1 ${fromCurrency} = ${(1/rate).toFixed(4)} ${toCurrency}`;
+
+                    function convertFromSource() {
+                        const fromCurrency = document.getElementById('fromCurrency').value;
+                        const toCurrency = document.getElementById('toCurrency').value;
+                        const fromAmount = parseFloat(document.getElementById('fromAmount').value) || 0;
+                        const { rate, type } = getExchangeRate(fromCurrency, toCurrency);
+                        
+                        // Оновлюємо toAmount на основі fromAmount
+                        if (fromAmount > 0) {
+                            document.getElementById('toAmount').value = (fromAmount * rate).toFixed(2);
+                        } else {
+                            document.getElementById('toAmount').value = '';
+                        }
+                        
+                        // Оновлюємо інформацію про курс
+                        const rateInfo = document.getElementById('exchangeRateInfo');
+                        if (fromCurrency === toCurrency) {
+                            rateInfo.textContent = '1:1';
+                        } else if (type === 'buy') {
+                            // валюта → UAH: показываем курс покупки
+                            rateInfo.textContent = `1 ${fromCurrency} = ${rate.toFixed(2)} UAH`;
+                        } else if (type === 'sell_inverted') {
+                            // UAH → валюта: показываем курс продажи
+                            const sellRate = ratesData.find(r => r.currency === toCurrency);
+                            rateInfo.textContent = `1 ${toCurrency} = ${parseFloat(sellRate.sell).toFixed(2)} UAH`;
+                        } else {
+                            rateInfo.textContent = `1 ${fromCurrency} = ${(1/rate).toFixed(4)} ${toCurrency}`;
+                        }
                     }
-                }
 
                 function convertFromTarget() {
-                    const fromCurrency = document.getElementById('fromCurrency').value;
-                    const toCurrency = document.getElementById('toCurrency').value;
-                    const toAmount = parseFloat(document.getElementById('toAmount').value) || 0;
-                    const { rate, type } = getExchangeRate(fromCurrency, toCurrency);
-                    
-                    // Оновлюємо fromAmount на основі toAmount
-                    if (toAmount > 0) {
-                        document.getElementById('fromAmount').value = (toAmount / rate).toFixed(2);
-                    } else {
-                        document.getElementById('fromAmount').value = '';
+                        const fromCurrency = document.getElementById('fromCurrency').value;
+                        const toCurrency = document.getElementById('toCurrency').value;
+                        const toAmount = parseFloat(document.getElementById('toAmount').value) || 0;
+                        const { rate, type } = getExchangeRate(fromCurrency, toCurrency);
+                        
+                        // Оновлюємо fromAmount на основі toAmount
+                        if (toAmount > 0) {
+                            document.getElementById('fromAmount').value = (toAmount / rate).toFixed(2);
+                        } else {
+                            document.getElementById('fromAmount').value = '';
+                        }
+                        
+                        // Оновлюємо інформацію про курс
+                        const rateInfo = document.getElementById('exchangeRateInfo');
+                        if (fromCurrency === toCurrency) {
+                            rateInfo.textContent = '1:1';
+                        } else if (type === 'buy') {
+                            // валюта → UAH: показываем курс покупки
+                            rateInfo.textContent = `1 ${fromCurrency} = ${rate.toFixed(2)} UAH`;
+                        } else if (type === 'sell_inverted') {
+                            // UAH → валюта: показываем курс продажи
+                            const sellRate = ratesData.find(r => r.currency === toCurrency);
+                            rateInfo.textContent = `1 ${toCurrency} = ${parseFloat(sellRate.sell).toFixed(2)} UAH`;
+                        } else {
+                            rateInfo.textContent = `1 ${fromCurrency} = ${(1/rate).toFixed(4)} ${toCurrency}`;
+                        }
                     }
-                    
-                    // Оновлюємо інформацію про курс
-                    const rateInfo = document.getElementById('exchangeRateInfo');
-                    if (fromCurrency === toCurrency) {
-                        rateInfo.textContent = '1:1';
-                    } else if (type === 'sell') {
-                        // валюта → UAH: показываем курс продажи
-                        rateInfo.textContent = `1 ${fromCurrency} = ${rate.toFixed(2)} UAH`;
-                    } else if (type === 'buy_inverted') {
-                        // UAH → валюта: показываем курс покупки
-                        const buyRate = ratesData.find(r => r.currency === toCurrency);
-                        rateInfo.textContent = `1 ${toCurrency} = ${parseFloat(buyRate.buy).toFixed(2)} UAH`;
-                    } else {
-                        rateInfo.textContent = `1 ${fromCurrency} = ${(1/rate).toFixed(4)} ${toCurrency}`;
-                    }
-                }
-        function openModal() {
+                            function openModal() {
             document.getElementById('converterModal').style.display = 'flex';
         }
 
