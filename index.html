@@ -1204,7 +1204,7 @@
                     e.target.value = '+38';
                 } else if (value.length > 3) {
                     const digits = value.substring(3).replace(/[^0-9]/g, '');
-                    e.target.value = '+38' + digits.substring(0, 9);
+                    e.target.value = '+38' + digits.substring(0, 10);
                 }
                 document.getElementById('phoneError').style.display = 'none';
             });
