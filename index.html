@@ -241,7 +241,7 @@
             position: absolute;
             top: 10px;
             right: 10px;
-            font-size: 2.1rem;
+            font-size: 1.5rem;
             cursor: pointer;
             color: #333;
         }
@@ -251,10 +251,12 @@
         }
 
         .converter-section label {
-            display: block;
+            display: flex;
+            align-items: center;
             margin-bottom: 10px;
             font-weight: 600;
             color: #333;
+            gap: 8px;
         }
 
         .converter-section select, .converter-section input {
@@ -266,26 +268,12 @@
             font-size: 1rem;
         }
 
-        .converter-section select {
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23333' viewBox='0 0 16 16'%3E%3Cpath d='M8 12l-6-6h12z'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 10px center;
-            padding-right: 30px;
-        }
-
-        .currency-option {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 5px;
-        }
-
-        .select-currency-flag {
+        .converter-flag {
             width: 24px;
             height: 18px;
-            vertical-align: middle;
-            margin-right: 8px;
+            border-radius: 3px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            object-fit: cover;
         }
 
         .exchange-rate-info {
@@ -325,7 +313,11 @@
                 min-width: 60px;
             }
 
-            .currency-flag, .select-currency-flag {
+            body {
+                padding: 15px;
+            }
+
+            .currency-flag, .converter-flag {
                 width: 20px;
                 height: 15px;
             }
@@ -378,7 +370,7 @@
                 min-width: 50px;
             }
 
-            .currency-flag, .select-currency-flag {
+            .currency-flag, .converter-flag {
                 width: 18px;
                 height: 14px;
             }
@@ -518,14 +510,14 @@
                     <span class="close-button" onclick="closeModal()">&times;</span>
                     <h2>Конвертер валют</h2>
                     <div class="converter-section">
-                        <label>Віддаєте</label>
+                        <label>Віддаєте <img id="fromCurrencyFlag" class="converter-flag" src="" alt="" style="display: none;"></label>
                         <select id="fromCurrency" onchange="updateConversion()">
                         </select>
                         <input type="number" id="fromAmount" oninput="convertFromSource()" placeholder="Введіть суму" min="0" step="0.01">
                     </div>
                     <div class="exchange-rate-info" id="exchangeRateInfo"></div>
                     <div class="converter-section">
-                        <label>Отримуєте</label>
+                        <label>Отримуєте <img id="toCurrencyFlag" class="converter-flag" src="" alt="" style="display: none;"></label>
                         <select id="toCurrency" onchange="updateConversion()">
                         </select>
                         <input type="number" id="toAmount" oninput="convertFromTarget()" placeholder="Введіть суму" min="0" step="0.01">
@@ -590,6 +582,32 @@
                 `;
             } else {
                 return `<div class="currency-cell"><span class="currency-text">${escapeHtml(currencyText)}</span></div>`;
+            }
+        }
+
+        function updateCurrencyFlags() {
+            const fromCurrency = document.getElementById('fromCurrency').value;
+            const toCurrency = document.getElementById('toCurrency').value;
+            const fromFlag = document.getElementById('fromCurrencyFlag');
+            const toFlag = document.getElementById('toCurrencyFlag');
+
+            const fromCountryCode = currencyToCountryCode[fromCurrency];
+            const toCountryCode = currencyToCountryCode[toCurrency];
+
+            if (fromCountryCode) {
+                fromFlag.src = `https://flagcdn.com/${fromCountryCode}.svg`;
+                fromFlag.alt = fromCurrency;
+                fromFlag.style.display = 'inline-block';
+            } else {
+                fromFlag.style.display = 'none';
+            }
+
+            if (toCountryCode) {
+                toFlag.src = `https://flagcdn.com/${toCountryCode}.svg`;
+                toFlag.alt = toCurrency;
+                toFlag.style.display = 'inline-block';
+            } else {
+                toFlag.style.display = 'none';
             }
         }
 
@@ -842,21 +860,7 @@
             currencies.forEach(currency => {
                 const option = document.createElement('option');
                 option.value = currency;
-                const currencyCode = getCurrencyCode(currency);
-                const countryCode = currencyCode ? currencyToCountryCode[currencyCode] : null;
-                if (countryCode) {
-                    option.innerHTML = `
-                        <div class="currency-option">
-                            <img src="https://flagcdn.com/${countryCode}.svg" 
-                                 alt="${currencyCode}" 
-                                 class="select-currency-flag"
-                                 onerror="this.style.display='none'">
-                            <span>${escapeHtml(currency)}</span>
-                        </div>
-                    `;
-                } else {
-                    option.textContent = currency;
-                }
+                option.textContent = currency;
                 fromSelect.appendChild(option);
             });
             
@@ -867,10 +871,12 @@
             fromSelect.onchange = function() {
                 updateToCurrencyOptions();
                 updateConversion();
+                updateCurrencyFlags();
             };
             
             toSelect.onchange = function() {
                 updateConversion();
+                updateCurrencyFlags();
             };
             
             // Инициализируем toCurrency на основе выбранного fromCurrency
@@ -882,6 +888,7 @@
             }
             
             updateConversion();
+            updateCurrencyFlags();
         }
 
         function updateToCurrencyOptions() {
@@ -900,37 +907,14 @@
                 ratesData.forEach(rate => {
                     const option = document.createElement('option');
                     option.value = rate.currency;
-                    const currencyCode = getCurrencyCode(rate.currency);
-                    const countryCode = currencyCode ? currencyToCountryCode[currencyCode] : null;
-                    if (countryCode) {
-                        option.innerHTML = `
-                            <div class="currency-option">
-                                <img src="https://flagcdn.com/${countryCode}.svg" 
-                                     alt="${currencyCode}" 
-                                     class="select-currency-flag"
-                                     onerror="this.style.display='none'">
-                                <span>${escapeHtml(rate.currency)}</span>
-                            </div>
-                        `;
-                    } else {
-                        option.textContent = rate.currency;
-                    }
+                    option.textContent = rate.currency;
                     toSelect.appendChild(option);
                 });
             } else {
                 // Если выбрана любая другая валюта, то доступна только UAH
                 const option = document.createElement('option');
                 option.value = 'UAH';
-                const countryCode = currencyToCountryCode['UAH'];
-                option.innerHTML = `
-                    <div class="currency-option">
-                        <img src="https://flagcdn.com/${countryCode}.svg" 
-                             alt="UAH" 
-                             class="select-currency-flag"
-                             onerror="this.style.display='none'">
-                        <span>UAH</span>
-                    </div>
-                `;
+                option.textContent = 'UAH';
                 toSelect.appendChild(option);
             }
             
@@ -1062,6 +1046,7 @@
 
         function openModal() {
             document.getElementById('converterModal').style.display = 'flex';
+            updateCurrencyFlags();
         }
 
         function closeModal() {
