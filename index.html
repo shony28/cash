@@ -576,9 +576,9 @@
 
             <div id="contactContainer" class="contact-container">
                 <h2>Наші контакти</h2>
-                <p>Номер телефону: +380 96 994 00 90</p>
-                <p>Час роботи: Пн-Пт: 9:00 - 18:00, Сб: 10:00 - 16:00</p>
-                <p>Адреса: вул. Центральна, 1, Київ, Україна</p>
+                <p id="contactPhone">Номер телефону:</p>
+                <p id="contactHours">Час роботи:</p>
+                <p id="contactAddress">Адреса:</p>
             </div>
 
             <div id="converterModal" class="modal">
@@ -813,12 +813,28 @@
             }
         }
 
-        function applySettings() {
-            const headerTitleEl = document.getElementById('headerTitle');
-            if (settingsData.nameHeader) {
-                headerTitleEl.textContent = settingsData.nameHeader;
+              function applySettings() {
+                const headerTitleEl = document.getElementById('headerTitle');
+                const contactPhoneEl = document.getElementById('contactPhone');
+                const contactHoursEl = document.getElementById('contactHours');
+                const contactAddressEl = document.getElementById('contactAddress');
+                
+                if (settingsData.nameHeader) {
+                    headerTitleEl.textContent = settingsData.nameHeader;
+                }
+                
+                if (settingsData.ourContacts1) {
+                    contactPhoneEl.textContent = settingsData.ourContacts1;
+                }
+                
+                if (settingsData.ourContacts2) {
+                    contactHoursEl.textContent = settingsData.ourContacts2;
+                }
+                
+                if (settingsData.ourContacts3) {
+                    contactAddressEl.textContent = settingsData.ourContacts3;
+                }
             }
-        }
 
         async function loadRates() {
             if (!SPREADSHEET_ID) {
