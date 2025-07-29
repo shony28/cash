@@ -76,6 +76,30 @@
             border: 1px solid rgba(255,255,255,0.2);
             overflow-x: auto;
             position: relative;
+            margin-bottom: 30px;
+        }
+
+        .contact-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            text-align: center;
+        }
+
+        .contact-container h2 {
+            font-size: 1.8rem;
+            color: #524785;
+            margin-bottom: 20px;
+        }
+
+        .contact-container p {
+            font-size: 1.1rem;
+            color: #333;
+            margin-bottom: 10px;
+            line-height: 1.6;
         }
 
         .rates-table {
@@ -205,8 +229,6 @@
             line-height: 1.6;
         }
 
-
-
         .landing-button, .order-button {
             display: inline-block;
             padding: 15px 30px;
@@ -313,7 +335,7 @@
                 font-size: 2rem;
             }
 
-            .table-container {
+            .table-container, .contact-container {
                 padding: 20px;
                 margin: 0 -10px;
             }
@@ -368,6 +390,14 @@
             .modal-content {
                 padding: 20px;
             }
+
+            .contact-container h2 {
+                font-size: 1.6rem;
+            }
+
+            .contact-container p {
+                font-size: 1rem;
+            }
         }
 
         @media (max-width: 480px) {
@@ -375,7 +405,7 @@
                 font-size: 1.8rem;
             }
 
-            .table-container {
+            .table-container, .contact-container {
                 padding: 15px;
             }
 
@@ -416,6 +446,14 @@
             .landing-button, .order-button {
                 padding: 10px 20px;
                 font-size: 1rem;
+            }
+
+            .contact-container h2 {
+                font-size: 1.4rem;
+            }
+
+            .contact-container p {
+                font-size: 0.95rem;
             }
         }
 
@@ -534,6 +572,13 @@
                     </tbody>
                 </table>
                 <button class="order-button" onclick="openModal()">Замовити обмін</button>
+            </div>
+
+            <div id="contactContainer" class="contact-container">
+                <h2>Наші контакти</h2>
+                <p>Номер телефону: +380 96 994 00 90</p>
+                <p>Час роботи: Пн-Пт: 9:00 - 18:00, Сб: 10:00 - 16:00</p>
+                <p>Адреса: вул. Центральна, 1, Київ, Україна</p>
             </div>
 
             <div id="converterModal" class="modal">
