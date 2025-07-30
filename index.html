@@ -330,6 +330,24 @@
             color: #333;
         }
 
+        /* Исправление для кнопки "Замовити обмін" */
+        .table-container .order-button {
+            display: none; /* По умолчанию кнопка скрыта */
+            margin: 20px auto 0 auto;
+            width: fit-content;
+        }
+
+        .table-container .order-button.visible {
+            display: block; /* Показывать кнопку когда есть класс visible */
+        }
+
+        /* Стили для кнопки "Замовити" в модальном окне */
+        .modal-content .order-button {
+            display: block !important; /* Всегда показывать кнопку в модальном окне */
+            margin: 20px auto 0 auto;
+            width: fit-content;
+        }
+
         @media (max-width: 768px) {
             .header h1 {
                 font-size: 2rem;
@@ -525,19 +543,6 @@
                 justify-content: center;
             }
         }
-
-        .order-button {
-            display: block;
-            margin-left: auto;
-            margin-right: auto;
-            display: none; /* По умолчанию кнопка скрыта */
-        }
-
-        .order-button.visible {
-            display: block; /* Показывать кнопку когда есть класс visible */
-        }
-
-
     </style>
 </head>
 <body>
@@ -814,13 +819,14 @@
                 if (cachedSettings) {
                     console.log('Використовую кешовані налаштування:', cachedSettings);
                     settingsData = cachedSettings;
-                    applySettings(); // Это вызовет новую логику показа/скрытия
+                    applySettings(); 
                 } else {
-                    // Если нет кешированных данных, убеждаемся что контейнер скрыт
                     document.getElementById('contactContainer').style.display = 'none';
                 }
              }   
         }
+
+        
 
         function applyColorStyles() {
             const styleColor = settingsData.styleColor;
