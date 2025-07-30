@@ -822,6 +822,48 @@
              }   
         }
 
+        function applyColorStyles() {
+            const styleColor = settingsData.styleColor;
+            let cssRules = '';
+            
+            if (styleColor === 'style2') {
+                // Темно-серые цвета
+                cssRules = `
+                    .header h1 { color: #4a4a4a !important; }
+                    .contact-container h2 { color: #4a4a4a !important; }
+                    .landing-container h1 { color: #4a4a4a !important; }
+                    .rates-table thead { background: linear-gradient(135deg, #4a4a4a, #2d2d2d) !important; }
+                    .landing-button, .order-button { background: linear-gradient(135deg, #4a4a4a, #2d2d2d) !important; }
+                    .rates-table tbody tr:hover { background: linear-gradient(135deg, rgba(74, 74, 74, 0.1), rgba(45, 45, 45, 0.1)) !important; }
+                `;
+            } else if (styleColor === 'style3') {
+                // Темно-синие цвета
+                cssRules = `
+                    .header h1 { color: #1e3a8a !important; }
+                    .contact-container h2 { color: #1e3a8a !important; }
+                    .landing-container h1 { color: #1e3a8a !important; }
+                    .rates-table thead { background: linear-gradient(135deg, #1e3a8a, #1e40af) !important; }
+                    .landing-button, .order-button { background: linear-gradient(135deg, #1e3a8a, #1e40af) !important; }
+                    .rates-table tbody tr:hover { background: linear-gradient(135deg, rgba(30, 58, 138, 0.1), rgba(30, 64, 175, 0.1)) !important; }
+                `;
+            }
+            // Если style1 или любое другое значение - используем стандартные стили
+            
+            // Удаляем предыдущие стили если они были
+            const existingStyleEl = document.getElementById('dynamicStyles');
+            if (existingStyleEl) {
+                existingStyleEl.remove();
+            }
+            
+            // Добавляем новые стили если они есть
+            if (cssRules) {
+                const styleEl = document.createElement('style');
+                styleEl.id = 'dynamicStyles';
+                styleEl.textContent = cssRules;
+                document.head.appendChild(styleEl);
+            }
+        }
+
         function applySettings() {
             const headerTitleEl = document.getElementById('headerTitle');
             const contactPhoneEl = document.getElementById('contactPhone');
@@ -871,6 +913,9 @@
             } else {
                 orderButton.classList.remove('visible');
             }
+            
+            // Применяем стили цветов
+            applyColorStyles();
         }
 
         async function loadRates() {
