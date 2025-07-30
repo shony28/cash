@@ -530,7 +530,14 @@
             display: block;
             margin-left: auto;
             margin-right: auto;
+            display: none; /* По умолчанию кнопка скрыта */
         }
+
+        .order-button.visible {
+            display: block; /* Показывать кнопку когда есть класс visible */
+        }
+
+
     </style>
 </head>
 <body>
@@ -821,6 +828,7 @@
             const contactHoursEl = document.getElementById('contactHours');
             const contactAddressEl = document.getElementById('contactAddress');
             const contactContainer = document.getElementById('contactContainer');
+            const orderButton = document.querySelector('.order-button'); // Добавить эту строку
             
             if (settingsData.nameHeader) {
                 headerTitleEl.textContent = settingsData.nameHeader;
@@ -855,6 +863,13 @@
                 contactContainer.style.display = 'block';
             } else {
                 contactContainer.style.display = 'none';
+            }
+            
+            // ДОБАВИТЬ ЭТУ ЛОГИКУ ДЛЯ КНОПКИ ЗАКАЗА
+            if (settingsData.visibilityOrderButton === 'on') {
+                orderButton.classList.add('visible');
+            } else {
+                orderButton.classList.remove('visible');
             }
         }
 
