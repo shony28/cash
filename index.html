@@ -574,7 +574,7 @@
                 <button class="order-button" onclick="openModal()">Замовити обмін</button>
             </div>
 
-            <div id="contactContainer" class="contact-container">
+            <div id="contactContainer" class="contact-container" style="display: none;">
                 <h2>Наші контакти</h2>
                 <p id="contactPhone"></p>
                 <p id="contactHours"></p>
@@ -807,9 +807,12 @@
                 if (cachedSettings) {
                     console.log('Використовую кешовані налаштування:', cachedSettings);
                     settingsData = cachedSettings;
-                    applySettings();
+                    applySettings(); // Это вызовет новую логику показа/скрытия
+                } else {
+                    // Если нет кешированных данных, убеждаемся что контейнер скрыт
+                    document.getElementById('contactContainer').style.display = 'none';
                 }
-            }
+             }   
         }
 
         function applySettings() {
@@ -817,21 +820,41 @@
             const contactPhoneEl = document.getElementById('contactPhone');
             const contactHoursEl = document.getElementById('contactHours');
             const contactAddressEl = document.getElementById('contactAddress');
+            const contactContainer = document.getElementById('contactContainer');
             
             if (settingsData.nameHeader) {
                 headerTitleEl.textContent = settingsData.nameHeader;
             }
             
+            // Проверяем наличие контактных данных и заполняем элементы
+            let hasContactData = false;
+            
             if (settingsData.ourContacts1) {
                 contactPhoneEl.textContent = settingsData.ourContacts1;
+                hasContactData = true;
+            } else {
+                contactPhoneEl.textContent = '';
             }
             
             if (settingsData.ourContacts2) {
                 contactHoursEl.textContent = settingsData.ourContacts2;
+                hasContactData = true;
+            } else {
+                contactHoursEl.textContent = '';
             }
             
             if (settingsData.ourContacts3) {
                 contactAddressEl.textContent = settingsData.ourContacts3;
+                hasContactData = true;
+            } else {
+                contactAddressEl.textContent = '';
+            }
+            
+            // Показываем или скрываем contactContainer в зависимости от наличия данных
+            if (hasContactData) {
+                contactContainer.style.display = 'block';
+            } else {
+                contactContainer.style.display = 'none';
             }
         }
 
