@@ -614,7 +614,7 @@
     </div>
 
     <script>
-        // Глобальні константи
+                // Глобальні константи
         const ALIASES_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSg-032Hj6F202mS9S_G75DD6dpHlmpMzjf5cSw9_XmTsrnekqamSJwOc-BqdQADP-dNrCIsiAaKtud/pub?gid=0&single=true&output=csv';
         const SHEET_NAME = 'exchange';
         const SETTINGS_SHEET_NAME = 'settings';
@@ -764,11 +764,10 @@
             }
             try {
                 console.log('Завантаження налаштувань...');
-                const proxyUrl = 'https://api.allorigins.win/raw?url=';
+                // Прямой запрос к Google Sheets без прокси
                 const targetUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?sheet=${SETTINGS_SHEET_NAME}&range=A:C&tqx=out:json`;
-                const fullUrl = proxyUrl + encodeURIComponent(targetUrl);
 
-                const text = await fetchWithRetry(fullUrl);
+                const text = await fetchWithRetry(targetUrl);
                 
                 let jsonText = text.trim();
                 if (jsonText.startsWith('/*O_o*/\ngoogle.visualization.Query.setResponse(')) {
@@ -813,28 +812,28 @@
             }
         }
 
-              function applySettings() {
-                const headerTitleEl = document.getElementById('headerTitle');
-                const contactPhoneEl = document.getElementById('contactPhone');
-                const contactHoursEl = document.getElementById('contactHours');
-                const contactAddressEl = document.getElementById('contactAddress');
-                
-                if (settingsData.nameHeader) {
-                    headerTitleEl.textContent = settingsData.nameHeader;
-                }
-                
-                if (settingsData.ourContacts1) {
-                    contactPhoneEl.textContent = settingsData.ourContacts1;
-                }
-                
-                if (settingsData.ourContacts2) {
-                    contactHoursEl.textContent = settingsData.ourContacts2;
-                }
-                
-                if (settingsData.ourContacts3) {
-                    contactAddressEl.textContent = settingsData.ourContacts3;
-                }
+        function applySettings() {
+            const headerTitleEl = document.getElementById('headerTitle');
+            const contactPhoneEl = document.getElementById('contactPhone');
+            const contactHoursEl = document.getElementById('contactHours');
+            const contactAddressEl = document.getElementById('contactAddress');
+            
+            if (settingsData.nameHeader) {
+                headerTitleEl.textContent = settingsData.nameHeader;
             }
+            
+            if (settingsData.ourContacts1) {
+                contactPhoneEl.textContent = settingsData.ourContacts1;
+            }
+            
+            if (settingsData.ourContacts2) {
+                contactHoursEl.textContent = settingsData.ourContacts2;
+            }
+            
+            if (settingsData.ourContacts3) {
+                contactAddressEl.textContent = settingsData.ourContacts3;
+            }
+        }
 
         async function loadRates() {
             if (!SPREADSHEET_ID) {
@@ -850,11 +849,10 @@
             containerEl.style.display = 'none';
 
             try {
-                const proxyUrl = 'https://api.allorigins.win/raw?url=';
+                // Прямой запрос к Google Sheets без прокси
                 const targetUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?sheet=${SHEET_NAME}&range=A2:C&tqx=out:json`;
-                const fullUrl = proxyUrl + encodeURIComponent(targetUrl);
 
-                const text = await fetchWithRetry(fullUrl);
+                const text = await fetchWithRetry(targetUrl);
                 
                 let jsonText = text.trim();
                 if (jsonText.startsWith('/*O_o*/\ngoogle.visualization.Query.setResponse(')) {
@@ -1180,12 +1178,12 @@
 
             const { rate, type } = getExchangeRate(fromCurrency, toCurrency);
             const message = `
-Замовлення обміну валют:
-Отримуєте: ${fromAmount} ${fromCurrency}
-Віддаєте: ${toAmount} ${toCurrency}
-Курс: ${rate.toFixed(2)} (${type === 'buy' ? 'купівля' : type === 'sell' ? 'продаж' : 'крос-курс'})
-Ім'я: ${customerName}
-Телефон: ${customerPhone}
+        Замовлення обміну валют:
+        Отримуєте: ${fromAmount} ${fromCurrency}
+        Віддаєте: ${toAmount} ${toCurrency}
+        Курс: ${rate.toFixed(2)} (${type === 'buy' ? 'купівля' : type === 'sell' ? 'продаж' : 'крос-курс'})
+        Ім'я: ${customerName}
+        Телефон: ${customerPhone}
             `;
 
             try {
