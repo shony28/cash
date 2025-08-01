@@ -802,10 +802,19 @@
                     const row = rows[i];
                     if (row.c && row.c.length >= 3) {
                         const settingName = row.c[0] ? (row.c[0].v || '') : '';
-                        const settingValue = row.c[2] ? (row.c[2].v || '') : '';
+                        let settingValue = row.c[2] ? row.c[2].v : '';
 
-                        if (settingName && settingValue !== '') {
-                            settingsData[settingName.toString()] = settingValue.toString();
+                        if (settingName && settingValue !== '' && settingValue !== null && settingValue !== undefined) {
+                            // Преобразуем все значения в строки для единообразия
+                            // Особенно важно для telegramChatId, который может быть числом
+                            if (typeof settingValue === 'number') {
+                                // Для больших чисел (как Telegram Chat ID) используем toFixed(0) чтобы избежать научной нотации
+                                settingValue = settingValue.toFixed(0);
+                            } else {
+                                settingValue = settingValue.toString();
+                            }
+                            
+                            settingsData[settingName.toString()] = settingValue;
                         }
                     }
                 }
@@ -1228,8 +1237,11 @@
         return;
     }
 
-    if (!settingsData.telegramChatId) {
+    // Улучшенная проверка telegramChatId
+    const telegramChatId = settingsData.telegramChatId;
+    if (!telegramChatId || telegramChatId === '' || telegramChatId === 'undefined') {
         alert('Помилка: Telegram Chat ID не налаштовано. Будь ласка, перевірте налаштування.');
+        console.error('telegramChatId not found in settings:', settingsData);
         return;
     }
 
@@ -1258,13 +1270,14 @@
 `;
 
     try {
+        console.log('Sending message to chat ID:', telegramChatId);
         const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                chat_id: settingsData.telegramChatId,
+                chat_id: telegramChatId,
                 text: message
             })
         });
@@ -1273,6 +1286,8 @@
             alert('Замовлення успішно відправлено!');
             closeModal();
         } else {
+            const errorData = await response.json();
+            console.error('Telegram API error:', errorData);
             alert('Помилка при відправленні замовлення. Спробуйте ще раз.');
         }
     } catch (error) {
