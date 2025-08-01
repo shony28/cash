@@ -773,68 +773,90 @@
         }
 
         async function loadSettings() {
-            if (!SPREADSHEET_ID) {
-                throw new Error('SPREADSHEET_ID не визначено');
-            }
-            try {
-                console.log('Завантаження налаштувань...');
-                const targetUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?sheet=${SETTINGS_SHEET_NAME}&range=A:C&tqx=out:json`;
+    if (!SPREADSHEET_ID) {
+        throw new Error('SPREADSHEET_ID не визначено');
+    }
+    try {
+        console.log('Завантаження налаштувань...');
+        const targetUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?sheet=${SETTINGS_SHEET_NAME}&range=A:C&tqx=out:json`;
 
-                const text = await fetchWithRetry(targetUrl);
-                
-                let jsonText = text.trim();
-                if (jsonText.startsWith('/*O_o*/\ngoogle.visualization.Query.setResponse(')) {
-                    jsonText = jsonText.substring(47);
-                    jsonText = jsonText.substring(0, jsonText.length - 2);
-                }
-                
-                const jsonData = JSON.parse(jsonText);
-                
-                if (!jsonData.table || !jsonData.table.rows) {
-                    console.warn('Лист налаштувань порожній або відсутній');
-                    return;
-                }
+        const text = await fetchWithRetry(targetUrl);
+        
+        let jsonText = text.trim();
+        if (jsonText.startsWith('/*O_o*/\ngoogle.visualization.Query.setResponse(')) {
+            jsonText = jsonText.substring(47);
+            jsonText = jsonText.substring(0, jsonText.length - 2);
+        }
+        
+        const jsonData = JSON.parse(jsonText);
+        
+        if (!jsonData.table || !jsonData.table.rows) {
+            console.warn('Лист налаштувань порожній або відсутній');
+            return;
+        }
 
-                const rows = jsonData.table.rows;
-                settingsData = {};
+        const rows = jsonData.table.rows;
+        settingsData = {};
 
-                for (let i = 0; i < rows.length; i++) {
-                    const row = rows[i];
-                    if (row.c && row.c.length >= 3) {
-                        const settingName = row.c[0] ? (row.c[0].v || '') : '';
-                        let settingValue = row.c[2] ? row.c[2].v : '';
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            if (row.c && row.c.length >= 3) {
+                const settingName = row.c[0] ? (row.c[0].v || '') : '';
+                let settingValue = row.c[2] ? row.c[2].v : '';
 
-                        if (settingName && settingValue !== '' && settingValue !== null && settingValue !== undefined) {
-                            // Преобразуем все значения в строки для единообразия
-                            // Особенно важно для telegramChatId, который может быть числом
-                            if (typeof settingValue === 'number') {
-                                // Для больших чисел (как Telegram Chat ID) используем toFixed(0) чтобы избежать научной нотации
-                                settingValue = settingValue.toFixed(0);
-                            } else {
-                                settingValue = settingValue.toString();
-                            }
-                            
-                            settingsData[settingName.toString()] = settingValue;
+                if (settingName && settingValue !== '' && settingValue !== null && settingValue !== undefined) {
+                    // Улучшенная обработка различных типов данных
+                    if (typeof settingValue === 'number') {
+                        // Проверяем, является ли число большим (возможно Chat ID)
+                        if (settingName === 'telegramChatId' || Math.abs(settingValue) > 1e10) {
+                            // Для больших чисел используем специальную обработку
+                            // чтобы избежать потери точности и научной нотации
+                            settingValue = settingValue.toFixed(0);
+                        } else {
+                            // Для обычных чисел сохраняем как есть, но преобразуем в строку
+                            settingValue = settingValue.toString();
                         }
+                    } else if (typeof settingValue === 'string') {
+                        // Проверяем, не является ли строка числом в научной нотации
+                        if (/^-?\d+\.?\d*e[+-]?\d+$/i.test(settingValue)) {
+                            // Если это научная нотация, преобразуем в обычное число
+                            const numValue = parseFloat(settingValue);
+                            if (!isNaN(numValue)) {
+                                settingValue = numValue.toFixed(0);
+                            }
+                        }
+                        // Если это обычная строка, оставляем как есть
+                    } else {
+                        // Для всех остальных типов преобразуем в строку
+                        settingValue = settingValue.toString();
+                    }
+                    
+                    settingsData[settingName.toString()] = settingValue;
+                    
+                    // Дополнительная отладочная информация для telegramChatId
+                    if (settingName === 'telegramChatId') {
+                        console.log(`Обработка telegramChatId: исходное значение = ${row.c[2].v}, тип = ${typeof row.c[2].v}, финальное значение = ${settingValue}`);
                     }
                 }
-
-                console.log('Налаштування завантажено:', settingsData);
-                cacheData('settingsData', settingsData);
-                applySettings();
-
-            } catch (error) {
-                console.error('Помилка завантаження налаштувань:', error);
-                const cachedSettings = getCachedData('settingsData');
-                if (cachedSettings) {
-                    console.log('Використовую кешовані налаштування:', cachedSettings);
-                    settingsData = cachedSettings;
-                    applySettings(); 
-                } else {
-                    document.getElementById('contactContainer').style.display = 'none';
-                }
-             }   
+            }
         }
+
+        console.log('Налаштування завантажено:', settingsData);
+        cacheData('settingsData', settingsData);
+        applySettings();
+
+    } catch (error) {
+        console.error('Помилка завантаження налаштувань:', error);
+        const cachedSettings = getCachedData('settingsData');
+        if (cachedSettings) {
+            console.log('Використовую кешовані налаштування:', cachedSettings);
+            settingsData = cachedSettings;
+            applySettings(); 
+        } else {
+            document.getElementById('contactContainer').style.display = 'none';
+        }
+     }   
+}
 
         function applyColorStyles() {
             const styleColor = settingsData.styleColor;
@@ -1239,9 +1261,24 @@
 
     // Улучшенная проверка telegramChatId
     const telegramChatId = settingsData.telegramChatId;
-    if (!telegramChatId || telegramChatId === '' || telegramChatId === 'undefined') {
+    console.log('Проверка telegramChatId:', telegramChatId, 'тип:', typeof telegramChatId);
+    
+    // Более строгая проверка наличия и корректности Chat ID
+    if (!telegramChatId || 
+        telegramChatId === '' || 
+        telegramChatId === 'undefined' || 
+        telegramChatId === 'null' ||
+        telegramChatId.toString().trim() === '') {
         alert('Помилка: Telegram Chat ID не налаштовано. Будь ласка, перевірте налаштування.');
-        console.error('telegramChatId not found in settings:', settingsData);
+        console.error('telegramChatId not found or invalid in settings:', settingsData);
+        return;
+    }
+
+    // Дополнительная проверка - Chat ID должен быть числом (положительным или отрицательным)
+    const chatIdAsNumber = parseFloat(telegramChatId);
+    if (isNaN(chatIdAsNumber)) {
+        alert('Помилка: Некоректний формат Telegram Chat ID. Будь ласка, перевірте налаштування.');
+        console.error('telegramChatId is not a valid number:', telegramChatId);
         return;
     }
 
@@ -1270,14 +1307,17 @@
 `;
 
     try {
-        console.log('Sending message to chat ID:', telegramChatId);
+        // Используем строковое представление Chat ID для API
+        const chatIdForApi = telegramChatId.toString();
+        console.log('Sending message to chat ID:', chatIdForApi);
+        
         const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                chat_id: telegramChatId,
+                chat_id: chatIdForApi,
                 text: message
             })
         });
