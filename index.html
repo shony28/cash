@@ -805,37 +805,19 @@
                 let settingValue = row.c[2] ? row.c[2].v : '';
 
                 if (settingName && settingValue !== '' && settingValue !== null && settingValue !== undefined) {
-                    // Улучшенная обработка различных типов данных
-                    if (typeof settingValue === 'number') {
-                        // Проверяем, является ли число большим (возможно Chat ID)
-                        if (settingName === 'telegramChatId' || Math.abs(settingValue) > 1e10) {
-                            // Для больших чисел используем специальную обработку
-                            // чтобы избежать потери точности и научной нотации
-                            settingValue = settingValue.toFixed(0);
-                        } else {
-                            // Для обычных чисел сохраняем как есть, но преобразуем в строку
-                            settingValue = settingValue.toString();
-                        }
-                    } else if (typeof settingValue === 'string') {
-                        // Проверяем, не является ли строка числом в научной нотации
-                        if (/^-?\d+\.?\d*e[+-]?\d+$/i.test(settingValue)) {
-                            // Если это научная нотация, преобразуем в обычное число
-                            const numValue = parseFloat(settingValue);
-                            if (!isNaN(numValue)) {
-                                settingValue = numValue.toFixed(0);
-                            }
-                        }
-                        // Если это обычная строка, оставляем как есть
-                    } else {
-                        // Для всех остальных типов преобразуем в строку
-                        settingValue = settingValue.toString();
-                    }
+                    // Обработка различных типов данных из Google Sheets
+                    settingValue = processSettingValue(settingName, settingValue, row.c[2]);
                     
                     settingsData[settingName.toString()] = settingValue;
                     
-                    // Дополнительная отладочная информация для telegramChatId
+                    // Отладочная информация для telegramChatId
                     if (settingName === 'telegramChatId') {
-                        console.log(`Обработка telegramChatId: исходное значение = ${row.c[2].v}, тип = ${typeof row.c[2].v}, финальное значение = ${settingValue}`);
+                        console.log(`Обработка telegramChatId:`);
+                        console.log(`  - Исходное значение: ${row.c[2].v}`);
+                        console.log(`  - Тип исходного значения: ${typeof row.c[2].v}`);
+                        console.log(`  - Formatted value: ${row.c[2].f || 'не указано'}`);
+                        console.log(`  - Финальное значение: ${settingValue}`);
+                        console.log(`  - Тип финального значения: ${typeof settingValue}`);
                     }
                 }
             }
@@ -855,7 +837,139 @@
         } else {
             document.getElementById('contactContainer').style.display = 'none';
         }
-     }   
+    }   
+}
+
+/**
+ * Обрабатывает значение настройки в зависимости от его типа и имени настройки
+ * @param {string} settingName - Имя настройки
+ * @param {*} value - Значение из Google Sheets (v property)
+ * @param {Object} cellData - Полные данные ячейки из Google Sheets
+ * @returns {string} Обработанное значение
+ */
+function processSettingValue(settingName, value, cellData) {
+    // Для telegramChatId требуется особая обработка
+    if (settingName === 'telegramChatId') {
+        return processTelegramChatId(value, cellData);
+    }
+    
+    // Для других числовых настроек
+    if (typeof value === 'number') {
+        // Если число очень большое (возможно ID), сохраняем точность
+        if (Math.abs(value) > Number.MAX_SAFE_INTEGER || value.toString().includes('e')) {
+            // Пытаемся использовать formatted value если доступно
+            if (cellData.f && !cellData.f.includes('E')) {
+                return cellData.f.toString();
+            }
+            // Используем метод с высокой точностью
+            return value.toFixed(0);
+        }
+        return value.toString();
+    }
+    
+    // Для строк проверяем научную нотацию
+    if (typeof value === 'string') {
+        // Если строка содержит научную нотацию
+        if (/^-?\d+\.?\d*e[+-]?\d+$/i.test(value)) {
+            const numValue = parseFloat(value);
+            if (!isNaN(numValue) && isFinite(numValue)) {
+                return numValue.toFixed(0);
+            }
+        }
+        return value;
+    }
+    
+    // Для всех остальных типов
+    return value.toString();
+}
+
+/**
+ * Специальная обработка для telegramChatId
+ * @param {*} value - Значение из Google Sheets
+ * @param {Object} cellData - Полные данные ячейки
+ * @returns {string} Обработанный Chat ID
+ */
+function processTelegramChatId(value, cellData) {
+    // Сначала пытаемся использовать formatted value (f), если доступно
+    if (cellData.f && cellData.f !== null && cellData.f !== undefined) {
+        const formattedValue = cellData.f.toString();
+        // Если formatted value не содержит научную нотацию, используем его
+        if (!formattedValue.includes('E') && !formattedValue.includes('e')) {
+            // Удаляем возможные пробелы или другие символы форматирования
+            const cleanValue = formattedValue.replace(/[^\d-]/g, '');
+            if (cleanValue && /^-?\d+$/.test(cleanValue)) {
+                return cleanValue;
+            }
+        }
+    }
+    
+    // Если formatted value недоступно или некорректно, обрабатываем raw value
+    if (typeof value === 'number') {
+        // Для очень больших чисел используем специальную обработку
+        if (Math.abs(value) > Number.MAX_SAFE_INTEGER) {
+            console.warn('Внимание: telegramChatId превышает MAX_SAFE_INTEGER, возможна потеря точности');
+        }
+        
+        // Преобразуем в строку без научной нотации
+        if (value.toString().includes('e') || value.toString().includes('E')) {
+            // Используем toFixed для больших чисел
+            return value.toFixed(0);
+        }
+        
+        return Math.floor(value).toString();
+    }
+    
+    if (typeof value === 'string') {
+        // Если строка в научной нотации, преобразуем
+        if (/^-?\d+\.?\d*e[+-]?\d+$/i.test(value)) {
+            const numValue = parseFloat(value);
+            if (!isNaN(numValue) && isFinite(numValue)) {
+                return numValue.toFixed(0);
+            }
+        }
+        
+        // Если обычная строка, удаляем все кроме цифр и минуса
+        const cleanValue = value.replace(/[^\d-]/g, '');
+        if (cleanValue && /^-?\d+$/.test(cleanValue)) {
+            return cleanValue;
+        }
+    }
+    
+    // Если ничего не помогло, возвращаем как есть с предупреждением
+    console.warn('Не удалось корректно обработать telegramChatId:', value);
+    return value.toString();
+}
+
+/**
+ * Улучшенная функция валидации telegramChatId
+ * @param {string} chatId - Chat ID для проверки
+ * @returns {boolean} true если Chat ID корректный
+ */
+function isValidTelegramChatId(chatId) {
+    if (!chatId || chatId === '' || chatId === 'undefined' || chatId === 'null') {
+        return false;
+    }
+    
+    const cleanChatId = chatId.toString().trim();
+    
+    // Chat ID должен быть числом (может быть отрицательным для групп)
+    if (!/^-?\d+$/.test(cleanChatId)) {
+        return false;
+    }
+    
+    const numValue = parseFloat(cleanChatId);
+    
+    // Проверяем, что это валидное число
+    if (isNaN(numValue) || !isFinite(numValue)) {
+        return false;
+    }
+    
+    // Chat ID не может быть нулем
+    if (numValue === 0) {
+        return false;
+    }
+    
+    return true;
 }
 
         function applyColorStyles() {
@@ -1259,26 +1373,18 @@
         return;
     }
 
-    // Улучшенная проверка telegramChatId
+    // Улучшенная проверка и обработка telegramChatId
     const telegramChatId = settingsData.telegramChatId;
     console.log('Проверка telegramChatId:', telegramChatId, 'тип:', typeof telegramChatId);
     
-    // Более строгая проверка наличия и корректности Chat ID
-    if (!telegramChatId || 
-        telegramChatId === '' || 
-        telegramChatId === 'undefined' || 
-        telegramChatId === 'null' ||
-        telegramChatId.toString().trim() === '') {
-        alert('Помилка: Telegram Chat ID не налаштовано. Будь ласка, перевірте налаштування.');
-        console.error('telegramChatId not found or invalid in settings:', settingsData);
-        return;
-    }
-
-    // Дополнительная проверка - Chat ID должен быть числом (положительным или отрицательным)
-    const chatIdAsNumber = parseFloat(telegramChatId);
-    if (isNaN(chatIdAsNumber)) {
-        alert('Помилка: Некоректний формат Telegram Chat ID. Будь ласка, перевірте налаштування.');
-        console.error('telegramChatId is not a valid number:', telegramChatId);
+    // Используем улучшенную функцию валидации
+    if (!isValidTelegramChatId(telegramChatId)) {
+        alert('Помилка: Telegram Chat ID не налаштовано або має некоректний формат. Будь ласка, перевірте налаштування.');
+        console.error('Invalid telegramChatId in settings:', {
+            value: telegramChatId,
+            type: typeof telegramChatId,
+            settings: settingsData
+        });
         return;
     }
 
@@ -1307,9 +1413,9 @@
 `;
 
     try {
-        // Используем строковое представление Chat ID для API
-        const chatIdForApi = telegramChatId.toString();
-        console.log('Sending message to chat ID:', chatIdForApi);
+        // Очищаем Chat ID от возможных лишних символов и используем как строку
+        const chatIdForApi = telegramChatId.toString().trim();
+        console.log('Отправка сообщения на Chat ID:', chatIdForApi);
         
         const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
             method: 'POST',
@@ -1322,17 +1428,32 @@
             })
         });
 
+        const responseData = await response.json();
+
         if (response.ok) {
+            console.log('Сообщение успешно отправлено:', responseData);
             alert('Замовлення успішно відправлено!');
             closeModal();
         } else {
-            const errorData = await response.json();
-            console.error('Telegram API error:', errorData);
-            alert('Помилка при відправленні замовлення. Спробуйте ще раз.');
+            console.error('Telegram API error:', responseData);
+            
+            // Более детальная обработка ошибок Telegram API
+            let errorMessage = 'Помилка при відправленні замовлення.';
+            if (responseData.description) {
+                if (responseData.description.includes('chat not found')) {
+                    errorMessage = 'Помилка: Telegram чат не знайдено. Перевірте правильність Chat ID.';
+                } else if (responseData.description.includes('bot was blocked')) {
+                    errorMessage = 'Помилка: Бот заблокований у цьому чаті.';
+                } else if (responseData.description.includes('Forbidden')) {
+                    errorMessage = 'Помилка: Немає доступу до чату. Переконайтеся, що бот доданий до чату.';
+                }
+            }
+            
+            alert(errorMessage + ' Спробуйте ще раз.');
         }
     } catch (error) {
         console.error('Помилка відправлення до Telegram:', error);
-        alert('Помилка при відправленні замовлення. Спробуйте ще раз.');
+        alert('Помилка мережі при відправленні замовлення. Перевірте підключення до інтернету та спробуйте ще раз.');
     }
 }
 
