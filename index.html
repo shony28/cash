@@ -639,7 +639,6 @@
         let ratesData = [];
         let settingsData = {};
         let SPREADSHEET_ID = null;
-        let TELEGRAM_CHAT_ID = null;
 
         const currencyToCountryCode = {
             'EUR': 'eu', 'USD': 'us', 'GBP': 'gb', 'PLN': 'pl', 'CZK': 'cz',
@@ -875,14 +874,6 @@
             
             if (settingsData.nameHeader) {
                 headerTitleEl.textContent = settingsData.nameHeader;
-            }
-            
-            
-            if (settingsData.telegramChatId) {
-                TELEGRAM_CHAT_ID = settingsData.telegramChatId;
-                console.log('Telegram Chat ID установлен из настроек:', TELEGRAM_CHAT_ID);
-            } else {
-                console.warn('Telegram Chat ID не найден в настройках');
             }
             
             let hasContactData = false;
@@ -1237,10 +1228,8 @@
         return;
     }
 
-    // ДОБАВИТЬ ЭТУ ПРОВЕРКУ:
-    if (!TELEGRAM_CHAT_ID) {
-        alert('Помилка конфігурації: Telegram Chat ID не налаштовано');
-        console.error('TELEGRAM_CHAT_ID не встановлено');
+    if (!settingsData.telegramChatId) {
+        alert('Помилка: Telegram Chat ID не налаштовано. Будь ласка, перевірте налаштування.');
         return;
     }
 
@@ -1275,7 +1264,7 @@
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                chat_id: TELEGRAM_CHAT_ID,
+                chat_id: settingsData.telegramChatId,
                 text: message
             })
         });
