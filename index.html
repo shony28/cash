@@ -1,4 +1,1215 @@
-async function submitOrder() {
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Курси валют</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #ffffff 0%, #ffffff 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            color: #524785;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+        }
+
+        .last-update {
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+
+        .loading {
+            text-align: center;
+            color: white;
+            font-size: 1.2rem;
+            margin: 50px 0;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top: 4px solid white;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .table-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            overflow-x: auto;
+            position: relative;
+            margin-bottom: 30px;
+        }
+
+        .contact-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            text-align: center;
+        }
+
+        .contact-container h2 {
+            font-size: 1.8rem;
+            color: #524785;
+            margin-bottom: 20px;
+        }
+
+        .contact-container p {
+            font-size: 1.1rem;
+            color: #333;
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+
+        .rates-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 1.1rem;
+            margin-top: 10px;
+        }
+
+        .rates-table thead {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .rates-table th {
+            padding: 18px 15px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 1.2rem;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+
+        .rates-table th:first-child {
+            border-radius: 10px 0 0 0;
+        }
+
+        .rates-table th:last-child {
+            border-radius: 0 10px 0 0;
+        }
+
+        .rates-table td {
+            padding: 16px 15px;
+            text-align: center;
+            border-bottom: 1px solid #e0e0e0;
+            transition: all 0.3s ease;
+        }
+
+        .rates-table td {
+            font-weight: 600;
+            color: #333;
+            font-size: 1.15rem;
+        }
+
+        .rates-table tbody tr {
+            transition: all 0.3s ease;
+        }
+
+        .rates-table tbody tr:hover {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .rates-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .buy-rate, .sell-rate {
+            color: #333333;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-weight: bold;
+            display: inline-block;
+            min-width: 80px;
+            box-shadow: 0 2px 8px rgba(173, 173, 173, 0.3);
+        }
+
+        .error-message {
+            background: rgba(244, 67, 54, 0.9);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .phone-error {
+            color: #d32f2f;
+            font-size: 0.9rem;
+            margin-top: -5px;
+            margin-bottom: 10px;
+            display: none;
+        }
+
+        .currency-cell {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .currency-flag {
+            width: 24px;
+            height: 18px;
+            border-radius: 3px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            object-fit: cover;
+        }
+
+        .currency-text {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .landing-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            text-align: center;
+            max-width: 600px;
+            margin: 50px auto;
+        }
+
+        .landing-container h1 {
+            font-size: 2.2rem;
+            color: #524785;
+            margin-bottom: 20px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+
+        .landing-container p {
+            font-size: 1.2rem;
+            color: #333;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .landing-button, .order-button {
+            display: inline-block;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            cursor: pointer;
+            border: none;
+            margin-top: 20px;
+        }
+
+        .landing-button:hover, .order-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            position: relative;
+        }
+
+        .close-button {
+            position: absolute;
+            top: 3px;
+            right: 15px;
+            font-size: 34px;
+            cursor: pointer;
+            color: #333;
+        }
+
+        .converter-section {
+            margin-bottom: 20px;
+        }
+
+        .converter-section label {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #333;
+            gap: 8px;
+        }
+
+        .converter-section select {
+            width: 45%;
+        }
+
+        .converter-section input {
+            width: 48%;
+        }
+
+        .converter-section input:not(#fromAmount):not(#toAmount) {
+            width: 100%;
+        }
+
+        .converter-section select, .converter-section input {
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 18px;
+        }
+
+        .converter-flag {
+            width: 24px;
+            height: 18px;
+            border-radius: 3px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            object-fit: cover;
+        }
+
+        .exchange-rate-info {
+            text-align: center;
+            margin: 15px 0;
+            font-size: 1rem;
+            color: #333;
+        }
+
+        /* Исправление для кнопки "Замовити обмін" */
+        .table-container .order-button {
+            display: none; /* По умолчанию кнопка скрыта */
+            margin: 20px auto 0 auto;
+            width: fit-content;
+        }
+
+        .table-container .order-button.visible {
+            display: block; /* Показывать кнопку когда есть класс visible */
+        }
+
+        /* Стили для кнопки "Замовити" в модальном окне */
+        .modal-content .order-button {
+            display: block !important; /* Всегда показывать кнопку в модальном окне */
+            margin: 20px auto 0 auto;
+            width: fit-content;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .table-container, .contact-container {
+                padding: 20px;
+               
+            }
+
+            .rates-table {
+                font-size: 1rem;
+            }
+
+            .rates-table th {
+                padding: 12px 8px;
+                font-size: 1rem;
+            }
+
+            .rates-table td {
+                padding: 12px 8px;
+                font-size: 1rem;
+            }
+
+            .buy-rate, .sell-rate {
+                padding: 6px 8px;
+                font-size: 1.1rem;
+                min-width: 60px;
+            }
+
+            body {
+                padding: 15px;
+            }
+
+            .currency-flag, .converter-flag {
+                width: 20px;
+                height: 15px;
+            }
+
+            .landing-container {
+                padding: 30px;
+                margin: 30px 10px;
+            }
+
+            .landing-container h1 {
+                font-size: 1.8rem;
+            }
+
+            .landing-container p {
+                font-size: 1rem;
+            }
+
+            .landing-button, .order-button {
+                padding: 12px 25px;
+                font-size: 1.1rem;
+            }
+
+            .modal-content {
+                padding: 20px;
+            }
+
+            .contact-container h2 {
+                font-size: 1.6rem;
+            }
+
+            .contact-container p {
+                font-size: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .table-container, .contact-container {
+                padding: 15px;
+            }
+
+            .rates-table th {
+                padding: 10px 5px;
+                font-size: 0.9rem;
+            }
+
+            .rates-table td {
+                padding: 10px 5px;
+                font-size: 0.95rem;
+            }
+
+            .buy-rate, .sell-rate {
+                padding: 5px 6px;
+                font-size: 1rem;
+                min-width: 50px;
+            }
+
+            .currency-flag, .converter-flag {
+                width: 18px;
+                height: 14px;
+            }
+
+            .landing-container {
+                padding: 20px;
+                margin: 20px 10px;
+            }
+
+            .landing-container h1 {
+                font-size: 1.6rem;
+            }
+
+            .landing-container p {
+                font-size: 0.9rem;
+            }
+
+            .landing-button, .order-button {
+                padding: 10px 20px;
+                font-size: 1rem;
+            }
+
+            .contact-container h2 {
+                font-size: 1.4rem;
+            }
+
+            .contact-container p {
+                font-size: 0.95rem;
+            }
+        }
+
+        @media (max-width: 300px) {
+            .rates-table {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+            
+            .rates-table thead,
+            .rates-table tbody,
+            .rates-table th,
+            .rates-table td,
+            .rates-table tr {
+                display: block;
+            }
+            
+            .rates-table thead tr {
+                position: absolute;
+                top: -9999px;
+                left: -9999px;
+            }
+            
+            .rates-table tr {
+                border: 1px solid #ccc;
+                margin-bottom: 10px;
+                padding: 10px;
+                border-radius: 8px;
+                background: white;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            }
+            
+            .rates-table td {
+                border: none !important;
+                position: relative;
+                padding-left: 50% !important;
+                text-align: right !important;
+                white-space: normal;
+            }
+            
+            .rates-table td:before {
+                content: attr(data-label) ": ";
+                position: absolute;
+                left: 6px;
+                width: 45%;
+                padding-right: 10px;
+                white-space: nowrap;
+                font-weight: bold;
+                color: #333;
+            }
+            
+            .rates-table td:nth-child(2) {
+                text-align: center !important;
+                font-size: 1.2rem !important;
+                padding-left: 0 !important;
+                margin-bottom: 10px;
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                color: white;
+                border-radius: 5px;
+                padding: 10px !important;
+            }
+            
+            .rates-table td:nth-child(2):before {
+                display: none;
+            }
+
+            .currency-cell {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="landingPage" style="display: none;">
+            <div class="landing-container">
+                <h1>Вітаємо на Cash Exchange</h1>
+                <p>Створюйте власні таблиці курсів валют для вашого обмінника за допомогою нашого зручного шаблону Google Sheets.</p>
+                <a href="https://docs.google.com/spreadsheets/d/1wS170m_02ieAf20uu8iRPgFdZrZS_2-ivwhR0Cr2Nds/copy" class="landing-button" target="_blank">Створити копію таблиці</a>
+            </div>
+        </div>
+
+        <div id="mainContent" style="display: none;">
+            <div class="header">
+                <h1 id="headerTitle"></h1>
+                <div class="last-update" id="lastUpdate">Завантаження...</div>
+            </div>
+
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <div>Завантаження курсів валют...</div>
+            </div>
+
+            <div id="error" class="error-message" style="display: none;">
+                <h3>Помилка завантаження</h3>
+                <p>Не вдалося завантажити дані. <a href="#" id="retryLink">Спробувати ще раз</a></p>
+            </div>
+
+            <div id="ratesContainer" class="table-container" style="display: none;">
+                <table class="rates-table" id="ratesTable">
+                    <thead>
+                        <tr>
+                            <th>Купівля</th>
+                            <th></th>
+                            <th>Продаж</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ratesTableBody">
+                    </tbody>
+                </table>
+                <button class="order-button" onclick="openModal()">Замовити обмін</button>
+            </div>
+
+            <div id="contactContainer" class="contact-container" style="display: none;">
+                <h2>Наші контакти</h2>
+                <p id="contactPhone"></p>
+                <p id="contactHours"></p>
+                <p id="contactAddress"></p>
+            </div>
+
+            <div id="converterModal" class="modal">
+                <div class="modal-content">
+                    <span class="close-button" onclick="closeModal()">&times;</span>
+                    <h2>Конвертер валют</h2>
+                    <div class="converter-section">
+                        <label>Віддаєте <img id="fromCurrencyFlag" class="converter-flag" src="" alt="" style="display: none;"></label>
+                        <select id="fromCurrency" onchange="updateConversion()">
+                        </select>
+                        <input type="number" id="fromAmount" oninput="convertFromSource()" placeholder="Введіть суму" min="0" step="0.01">
+                    </div>
+                    <div class="exchange-rate-info" id="exchangeRateInfo"></div>
+                    <div class="converter-section">
+                        <label>Отримуєте <img id="toCurrencyFlag" class="converter-flag" src="" alt="" style="display: none;"></label>
+                        <select id="toCurrency" onchange="updateConversion()">
+                        </select>
+                        <input type="number" id="toAmount" oninput="convertFromTarget()" placeholder="Введіть суму" min="0" step="0.01">
+                    </div>
+                    <div class="converter-section">
+                        <label>Ім'я</label>
+                        <input type="text" id="customerName" placeholder="Введіть ваше ім'я" required>
+                    </div>
+                    <div class="converter-section">
+                        <label>Номер телефону</label>
+                        <input type="tel" id="customerPhone" placeholder="+380969940090" value="+38" maxlength="13" required>
+                        <div id="phoneError" class="phone-error">Номер телефону має містити +38 та 10 цифр</div>
+                    </div>
+                    <button class="order-button" onclick="submitOrder()">Замовити</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Глобальні константи
+        const ALIASES_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSg-032Hj6F202mS9S_G75DD6dpHlmpMzjf5cSw9_XmTsrnekqamSJwOc-BqdQADP-dNrCIsiAaKtud/pub?gid=0&single=true&output=csv';
+        const SHEET_NAME = 'exchange';
+        const SETTINGS_SHEET_NAME = 'settings';
+        const AUTO_REFRESH_INTERVAL = 30;
+        const MAX_RETRIES = 3;
+        const RETRY_DELAY = 2000;
+        const TELEGRAM_TOKEN = '7985562897:AAG0cG21ahyKOHcCfJdWn8LAaQbJN0E86oM';
+      
+
+        let ratesData = [];
+        let settingsData = {};
+        let SPREADSHEET_ID = null;
+
+        const currencyToCountryCode = {
+            'EUR': 'eu', 'USD': 'us', 'GBP': 'gb', 'PLN': 'pl', 'CZK': 'cz',
+            'CHF': 'ch', 'CAD': 'ca', 'AUD': 'au', 'JPY': 'jp', 'CNY': 'cn',
+            'SEK': 'se', 'NOK': 'no', 'DKK': 'dk', 'HUF': 'hu', 'RON': 'ro',
+            'BGN': 'bg', 'HRK': 'hr', 'RSD': 'rs', 'TRY': 'tr', 'ILS': 'il',
+            'AED': 'ae', 'SAR': 'sa', 'KRW': 'kr', 'SGD': 'sg', 'THB': 'th',
+            'MXN': 'mx', 'BRL': 'br', 'INR': 'in', 'RUB': 'ru', 'ZAR': 'za',
+            'NZD': 'nz', 'UAH': 'ua'
+        };
+
+        function getCurrencyCode(currencyText) {
+            // Извлекаем первые три буквы и проверяем, является ли это допустимым кодом валюты
+            const match = currencyText.match(/^([A-Z]{3})/);
+            const code = match ? match[1] : null;
+            return code && currencyToCountryCode[code] ? code : null;
+        }
+
+        function createCurrencyDisplay(currencyText) {
+            const currencyCode = getCurrencyCode(currencyText);
+            const countryCode = currencyCode ? currencyToCountryCode[currencyCode] : null;
+            
+            if (countryCode) {
+                return `
+                    <div class="currency-cell">
+                        <img src="https://flagcdn.com/${countryCode}.svg" 
+                             alt="${currencyCode}" 
+                             class="currency-flag"
+                             onerror="this.style.display='none'">
+                        <span class="currency-text">${escapeHtml(currencyText)}</span>
+                    </div>
+                `;
+            } else {
+                return `<div class="currency-cell"><span class="currency-text">${escapeHtml(currencyText)}</span></div>`;
+            }
+        }
+
+        function updateCurrencyFlags() {
+            const fromCurrency = document.getElementById('fromCurrency').value;
+            const toCurrency = document.getElementById('toCurrency').value;
+            const fromFlag = document.getElementById('fromCurrencyFlag');
+            const toFlag = document.getElementById('toCurrencyFlag');
+
+            const fromCountryCode = currencyToCountryCode[fromCurrency];
+            const toCountryCode = currencyToCountryCode[toCurrency];
+
+            if (fromCountryCode) {
+                fromFlag.src = `https://flagcdn.com/${fromCountryCode}.svg`;
+                fromFlag.alt = fromCurrency;
+                fromFlag.style.display = 'inline-block';
+            } else {
+                fromFlag.style.display = 'none';
+            }
+
+            if (toCountryCode) {
+                toFlag.src = `https://flagcdn.com/${toCountryCode}.svg`;
+                toFlag.alt = toCurrency;
+                toFlag.style.display = 'inline-block';
+            } else {
+                toFlag.style.display = 'none';
+            }
+        }
+
+        async function fetchWithRetry(url, retries = MAX_RETRIES, delay = RETRY_DELAY) {
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+                    return await response.text();
+                } catch (error) {
+                    console.warn(`Спроба ${i + 1} не вдалася:`, error);
+                    if (i < retries - 1) {
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                    } else {
+                        throw error;
+                    }
+                }
+            }
+        }
+
+        function cacheData(key, data) {
+            try {
+                localStorage.setItem(key, JSON.stringify(data));
+            } catch (e) {
+                console.warn('Не вдалося зберегти дані в localStorage:', e);
+            }
+        }
+
+        function getCachedData(key) {
+            try {
+                const data = localStorage.getItem(key);
+                return data ? JSON.parse(data) : null;
+            } catch (e) {
+                console.warn('Не вдалося отримати дані з localStorage:', e);
+                return null;
+            }
+        }
+
+        async function getSpreadsheetId() {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const idParam = urlParams.get('id') || 'default';
+                console.log('Обробка параметра id:', idParam);
+
+                const isSpreadsheetId = /^[A-Za-z0-9_-]{40,}$/.test(idParam);
+
+                if (isSpreadsheetId) {
+                    console.log('Параметр id розпізнано як SPREADSHEET_ID');
+                    SPREADSHEET_ID = idParam;
+                    return;
+                }
+
+                console.log('Перевірка id як alias:', idParam);
+                const response = await fetchWithRetry(ALIASES_CSV_URL);
+                const csvText = response;
+                
+                const rows = csvText.split('\n').slice(1);
+                for (const row of rows) {
+                    const [csvAlias, spreadsheetId] = row.split(',').map(item => item.trim());
+                    if (csvAlias === idParam && spreadsheetId) {
+                        SPREADSHEET_ID = spreadsheetId;
+                        console.log('Знайдено SPREADSHEET_ID для alias:', idParam);
+                        return;
+                    }
+                }
+                
+                throw new Error(`ID таблиці для alias "${idParam}" не знайдено, і параметр не є SPREADSHEET_ID`);
+            } catch (error) {
+                console.error('Помилка отримання SPREADSHEET_ID:', error);
+                throw error;
+            }
+        }
+
+        async function loadSettings() {
+            if (!SPREADSHEET_ID) {
+                throw new Error('SPREADSHEET_ID не визначено');
+            }
+            try {
+                console.log('Завантаження налаштувань...');
+                const targetUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?sheet=${SETTINGS_SHEET_NAME}&range=A:C&tqx=out:json`;
+
+                const text = await fetchWithRetry(targetUrl);
+                
+                let jsonText = text.trim();
+                if (jsonText.startsWith('/*O_o*/\ngoogle.visualization.Query.setResponse(')) {
+                    jsonText = jsonText.substring(47);
+                    jsonText = jsonText.substring(0, jsonText.length - 2);
+                }
+                
+                const jsonData = JSON.parse(jsonText);
+                
+                if (!jsonData.table || !jsonData.table.rows) {
+                    console.warn('Лист налаштувань порожній або відсутній');
+                    return;
+                }
+
+                const rows = jsonData.table.rows;
+                settingsData = {};
+
+                for (let i = 0; i < rows.length; i++) {
+                    const row = rows[i];
+                    if (row.c && row.c.length >= 3) {
+                        const settingName = row.c[0] ? (row.c[0].v || '') : '';
+                        const settingValue = row.c[2] ? (row.c[2].v || '') : '';
+
+                        if (settingName && settingValue !== '') {
+                            settingsData[settingName.toString()] = settingValue.toString();
+                        }
+                    }
+                }
+
+                console.log('Налаштування завантажено:', settingsData);
+                cacheData('settingsData', settingsData);
+                applySettings();
+
+            } catch (error) {
+                console.error('Помилка завантаження налаштувань:', error);
+                const cachedSettings = getCachedData('settingsData');
+                if (cachedSettings) {
+                    console.log('Використовую кешовані налаштування:', cachedSettings);
+                    settingsData = cachedSettings;
+                    applySettings(); 
+                } else {
+                    document.getElementById('contactContainer').style.display = 'none';
+                }
+             }   
+        }
+
+        function applyColorStyles() {
+            const styleColor = settingsData.styleColor;
+            let cssRules = '';
+            
+            if (styleColor === 'style2') {
+                cssRules = `
+                    .header h1 { color: #4a4a4a !important; }
+                    .contact-container h2 { color: #4a4a4a !important; }
+                    .landing-container h1 { color: #4a4a4a !important; }
+                    .rates-table thead { background: linear-gradient(135deg, #4a4a4a, #2d2d2d) !important; }
+                    .landing-button, .order-button { background: linear-gradient(135deg, #4a4a4a, #2d2d2d) !important; }
+                    .rates-table tbody tr:hover { background: linear-gradient(135deg, rgba(74, 74, 74, 0.1), rgba(45, 45, 45, 0.1)) !important; }
+                `;
+            } else if (styleColor === 'style3') {
+                cssRules = `
+                    .header h1 { color: #1e3a8a !important; }
+                    .contact-container h2 { color: #1e3a8a !important; }
+                    .landing-container h1 { color: #1e3a8a !important; }
+                    .rates-table thead { background: linear-gradient(135deg, #1e3a8a, #1e40af) !important; }
+                    .landing-button, .order-button { background: linear-gradient(135deg, #1e3a8a, #1e40af) !important; }
+                    .rates-table tbody tr:hover { background: linear-gradient(135deg, rgba(30, 58, 138, 0.1), rgba(30, 64, 175, 0.1)) !important; }
+                `;
+            }
+            
+            const existingStyleEl = document.getElementById('dynamicStyles');
+            if (existingStyleEl) {
+                existingStyleEl.remove();
+            }
+            
+            if (cssRules) {
+                const styleEl = document.createElement('style');
+                styleEl.id = 'dynamicStyles';
+                styleEl.textContent = cssRules;
+                document.head.appendChild(styleEl);
+            }
+        }
+
+        function applySettings() {
+            const headerTitleEl = document.getElementById('headerTitle');
+            const contactPhoneEl = document.getElementById('contactPhone');
+            const contactHoursEl = document.getElementById('contactHours');
+            const contactAddressEl = document.getElementById('contactAddress');
+            const contactContainer = document.getElementById('contactContainer');
+            const orderButton = document.querySelector('.order-button');
+            
+            if (settingsData.nameHeader) {
+                headerTitleEl.textContent = settingsData.nameHeader;
+            }
+            
+            let hasContactData = false;
+            
+            if (settingsData.ourContacts1) {
+                contactPhoneEl.textContent = settingsData.ourContacts1;
+                hasContactData = true;
+            } else {
+                contactPhoneEl.textContent = '';
+            }
+            
+            if (settingsData.ourContacts2) {
+                contactHoursEl.textContent = settingsData.ourContacts2;
+                hasContactData = true;
+            } else {
+                contactHoursEl.textContent = '';
+            }
+            
+            if (settingsData.ourContacts3) {
+                contactAddressEl.textContent = settingsData.ourContacts3;
+                hasContactData = true;
+            } else {
+                contactAddressEl.textContent = '';
+            }
+            
+            if (hasContactData) {
+                contactContainer.style.display = 'block';
+            } else {
+                contactContainer.style.display = 'none';
+            }
+            
+            if (settingsData.visibilityOrderButton === 'on') {
+                orderButton.classList.add('visible');
+            } else {
+                orderButton.classList.remove('visible');
+            }
+            
+            applyColorStyles();
+        }
+
+        async function loadRates() {
+            if (!SPREADSHEET_ID) {
+                throw new Error('SPREADSHEET_ID не визначено');
+            }
+            const loadingEl = document.getElementById('loading');
+            const errorEl = document.getElementById('error');
+            const containerEl = document.getElementById('ratesContainer');
+            const lastUpdateEl = document.getElementById('lastUpdate');
+
+            loadingEl.style.display = 'block';
+            errorEl.style.display = 'none';
+            containerEl.style.display = 'none';
+
+            try {
+                const targetUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?sheet=${SHEET_NAME}&range=A2:C&tqx=out:json`;
+
+                const text = await fetchWithRetry(targetUrl);
+                
+                let jsonText = text.trim();
+                if (jsonText.startsWith('/*O_o*/\ngoogle.visualization.Query.setResponse(')) {
+                    jsonText = jsonText.substring(47);
+                    jsonText = jsonText.substring(0, jsonText.length - 2);
+                }
+                
+                const jsonData = JSON.parse(jsonText);
+                
+                if (!jsonData.table || !jsonData.table.rows) {
+                    throw new Error('Неправильний формат даних або таблиця пуста');
+                }
+
+                const rows = jsonData.table.rows;
+                ratesData = [];
+
+                for (let i = 0; i < rows.length; i++) {
+                    const row = rows[i];
+                    if (row.c && row.c.length >= 3) {
+                        const currency = row.c[0] ? (row.c[0].v || '') : '';
+                        const buyRate = row.c[1] ? (row.c[1].v || '') : '';
+                        const sellRate = row.c[2] ? (row.c[2].v || '') : '';
+
+                        if (currency && buyRate !== '' && sellRate !== '') {
+                            ratesData.push({
+                                currency: currency.toString(),
+                                buy: buyRate.toString(),
+                                sell: sellRate.toString()
+                            });
+                        }
+                    }
+                }
+
+                if (ratesData.length === 0) {
+                    throw new Error('Дані не знайдено. Перевірте, що у таблиці є дані починаючи з рядка 2');
+                }
+
+                cacheData('ratesData', ratesData);
+                displayRates();
+                populateCurrencySelectors();
+                loadingEl.style.display = 'none';
+                containerEl.style.display = 'block';
+                lastUpdateEl.textContent = `Останнє оновлення: ${new Date().toLocaleString('uk-UA')}`;
+
+            } catch (error) {
+                console.error('Помилка завантаження:', error);
+                const cachedRates = getCachedData('ratesData');
+                if (cachedRates) {
+                    console.log('Використовую кешовані дані:', cachedRates);
+                    ratesData = cachedRates;
+                    displayRates();
+                    populateCurrencySelectors();
+                    loadingEl.style.display = 'none';
+                    containerEl.style.display = 'block';
+                    lastUpdateEl.textContent = `Останнє оновлення (з кешу): ${new Date().toLocaleString('uk-UA')}`;
+                } else {
+                    loadingEl.style.display = 'none';
+                    errorEl.style.display = 'block';
+                    lastUpdateEl.textContent = 'Помилка оновлення';
+                }
+            }
+        }
+
+        function displayRates() {
+            const tableBody = document.getElementById('ratesTableBody');
+            tableBody.innerHTML = '';
+
+            ratesData.forEach(rate => {
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td data-label="Купівля"><span class="buy-rate">${escapeHtml(rate.buy.toString())}</span></td>
+                    <td data-label="Валюта">${createCurrencyDisplay(rate.currency)}</td>
+                    <td data-label="Продаж"><span class="sell-rate">${escapeHtml(rate.sell.toString())}</span></td>
+                `;
+
+                tableBody.appendChild(row);
+            });
+        }
+
+        function populateCurrencySelectors() {
+            const fromSelect = document.getElementById('fromCurrency');
+            const toSelect = document.getElementById('toCurrency');
+            
+            const currentFrom = fromSelect.value || 'USD';
+            const currentTo = toSelect.value || 'UAH';
+            
+            const currencies = ratesData.map(rate => ({
+                code: getCurrencyCode(rate.currency) || rate.currency,
+                display: rate.currency
+            }));
+            
+            currencies.unshift({ code: 'UAH', display: 'UAH' });
+            
+            fromSelect.innerHTML = '';
+            toSelect.innerHTML = '';
+            
+            currencies.forEach(currency => {
+                const option = document.createElement('option');
+                option.value = currency.code;
+                option.textContent = currency.display;
+                fromSelect.appendChild(option);
+            });
+            
+            fromSelect.value = currencies.some(c => c.code === currentFrom) ? currentFrom : 'USD';
+            
+            fromSelect.onchange = function() {
+                updateToCurrencyOptions();
+                updateConversion();
+                updateCurrencyFlags();
+            };
+            
+            toSelect.onchange = function() {
+                updateConversion();
+                updateCurrencyFlags();
+            };
+            
+            updateToCurrencyOptions();
+            
+            if (Array.from(toSelect.options).some(option => option.value === currentTo)) {
+                toSelect.value = currentTo;
+            }
+            
+            updateConversion();
+            updateCurrencyFlags();
+        }
+
+        function updateToCurrencyOptions() {
+            const fromSelect = document.getElementById('fromCurrency');
+            const toSelect = document.getElementById('toCurrency');
+            const fromCurrency = fromSelect.value;
+            
+            const currentTo = toSelect.value;
+            
+            toSelect.innerHTML = '';
+            
+            if (fromCurrency === 'UAH') {
+                ratesData.forEach(rate => {
+                    const currencyCode = getCurrencyCode(rate.currency) || rate.currency;
+                    const option = document.createElement('option');
+                    option.value = currencyCode;
+                    option.textContent = rate.currency;
+                    toSelect.appendChild(option);
+                });
+            } else {
+                const option = document.createElement('option');
+                option.value = 'UAH';
+                option.textContent = 'UAH';
+                toSelect.appendChild(option);
+            }
+            
+            if (Array.from(toSelect.options).some(option => option.value === currentTo)) {
+                toSelect.value = currentTo;
+            } else if (toSelect.options.length > 0) {
+                toSelect.value = toSelect.options[0].value;
+            }
+        }
+
+        function getExchangeRate(fromCurrency, toCurrency) {
+            if (fromCurrency === toCurrency) return { rate: 1, type: 'none' };
+
+            if (fromCurrency === 'UAH') {
+                const rateData = ratesData.find(rate => getCurrencyCode(rate.currency) === toCurrency || rate.currency === toCurrency);
+                if (!rateData) {
+                    console.error(`Курс для валюты ${toCurrency} не найден`);
+                    return { rate: 1, type: 'error' };
+                }
+                return { rate: 1 / parseFloat(rateData.sell), type: 'sell_inverted' };
+            } else if (toCurrency === 'UAH') {
+                const rateData = ratesData.find(rate => getCurrencyCode(rate.currency) === fromCurrency || rate.currency === fromCurrency);
+                if (!rateData) {
+                    console.error(`Курс для валюты ${fromCurrency} не найден`);
+                    return { rate: 1, type: 'error' };
+                }
+                return { rate: parseFloat(rateData.buy), type: 'buy' };
+            } else {
+                console.error('Кросс-курсы не поддерживаются. Обмен возможен только через UAH.');
+                return { rate: 1, type: 'error' };
+            }
+        }
+
+        function updateConversion() {
+            const fromCurrency = document.getElementById('fromCurrency').value;
+            const toCurrency = document.getElementById('toCurrency').value;
+            const fromAmount = parseFloat(document.getElementById('fromAmount').value) || 0;
+            const { rate, type } = getExchangeRate(fromCurrency, toCurrency);
+            
+            if (fromAmount > 0) {
+                document.getElementById('toAmount').value = (fromAmount * rate).toFixed(2);
+            } else {
+                document.getElementById('toAmount').value = '';
+            }
+            
+            const rateInfo = document.getElementById('exchangeRateInfo');
+            if (fromCurrency === toCurrency) {
+                rateInfo.textContent = '1:1';
+            } else if (type === 'buy') {
+                rateInfo.textContent = `1 ${fromCurrency} = ${rate.toFixed(2)} UAH`;
+            } else if (type === 'sell_inverted') {
+                const sellRate = ratesData.find(r => getCurrencyCode(r.currency) === toCurrency || r.currency === toCurrency);
+                rateInfo.textContent = `1 ${toCurrency} = ${parseFloat(sellRate.sell).toFixed(2)} UAH`;
+            } else {
+                rateInfo.textContent = `1 ${fromCurrency} = ${(1/rate).toFixed(4)} ${toCurrency}`;
+            }
+        }
+
+        function convertFromSource() {
+            const fromCurrency = document.getElementById('fromCurrency').value;
+            const toCurrency = document.getElementById('toCurrency').value;
+            const fromAmount = parseFloat(document.getElementById('fromAmount').value) || 0;
+            const { rate, type } = getExchangeRate(fromCurrency, toCurrency);
+            
+            if (fromAmount > 0) {
+                document.getElementById('toAmount').value = (fromAmount * rate).toFixed(2);
+            } else {
+                document.getElementById('toAmount').value = '';
+            }
+            
+            const rateInfo = document.getElementById('exchangeRateInfo');
+            if (fromCurrency === toCurrency) {
+                rateInfo.textContent = '1:1';
+            } else if (type === 'buy') {
+                rateInfo.textContent = `1 ${fromCurrency} = ${rate.toFixed(2)} UAH`;
+            } else if (type === 'sell_inverted') {
+                const sellRate = ratesData.find(r => getCurrencyCode(r.currency) === toCurrency || r.currency === toCurrency);
+                rateInfo.textContent = `1 ${toCurrency} = ${parseFloat(sellRate.sell).toFixed(2)} UAH`;
+            } else {
+                rateInfo.textContent = `1 ${fromCurrency} = ${(1/rate).toFixed(4)} ${toCurrency}`;
+            }
+        }
+
+        function convertFromTarget() {
+            const fromCurrency = document.getElementById('fromCurrency').value;
+            const toCurrency = document.getElementById('toCurrency').value;
+            const toAmount = parseFloat(document.getElementById('toAmount').value) || 0;
+            const { rate, type } = getExchangeRate(fromCurrency, toCurrency);
+            
+            if (toAmount > 0) {
+                document.getElementById('fromAmount').value = (toAmount / rate).toFixed(2);
+            } else {
+                document.getElementById('fromAmount').value = '';
+            }
+            
+            const rateInfo = document.getElementById('exchangeRateInfo');
+            if (fromCurrency === toCurrency) {
+                rateInfo.textContent = '1:1';
+            } else if (type === 'buy') {
+                rateInfo.textContent = `1 ${fromCurrency} = ${rate.toFixed(2)} UAH`;
+            } else if (type === 'sell_inverted') {
+                const sellRate = ratesData.find(r => getCurrencyCode(r.currency) === toCurrency || r.currency === toCurrency);
+                rateInfo.textContent = `1 ${toCurrency} = ${parseFloat(sellRate.sell).toFixed(2)} UAH`;
+            } else {
+                rateInfo.textContent = `1 ${fromCurrency} = ${(1/rate).toFixed(4)} ${toCurrency}`;
+            }
+        }
+
+        function openModal() {
+            document.getElementById('converterModal').style.display = 'flex';
+            updateCurrencyFlags();
+            const phoneInput = document.getElementById('customerPhone');
+            phoneInput.value = '+38';
+            document.getElementById('phoneError').style.display = 'none';
+        }
+
+        function closeModal() {
+            document.getElementById('converterModal').style.display = 'none';
+            document.getElementById('fromAmount').value = '';
+            document.getElementById('toAmount').value = '';
+            document.getElementById('customerName').value = '';
+            document.getElementById('customerPhone').value = '+38';
+            document.getElementById('phoneError').style.display = 'none';
+        }
+
+        function validatePhoneNumber(phone) {
+            const phoneRegex = /^\+38[0-9]{10}$/;
+            return phoneRegex.test(phone);
+        }
+
+        async function submitOrder() {
     const fromCurrency = document.getElementById('fromCurrency').value;
     const toCurrency = document.getElementById('toCurrency').value;
     const fromAmount = document.getElementById('fromAmount').value;
@@ -69,3 +1280,88 @@ async function submitOrder() {
         alert('Помилка при відправленні замовлення. Спробуйте ще раз.');
     }
 }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        async function loadAllData() {
+            try {
+                await getSpreadsheetId();
+                await Promise.all([
+                    loadSettings(),
+                    loadRates()
+                ]);
+            } catch (error) {
+                console.error('Помилка ініціалізації:', error);
+                const errorEl = document.getElementById('error');
+                const loadingEl = document.getElementById('loading');
+                loadingEl.style.display = 'none';
+                errorEl.style.display = 'block';
+                document.getElementById('lastUpdate').textContent = 'Помилка оновлення';
+            }
+        }
+
+        function startAutoRefresh() {
+            if (AUTO_REFRESH_INTERVAL > 0) {
+                setInterval(loadAllData, AUTO_REFRESH_INTERVAL * 60 * 1000);
+                console.log(`Автооновлення увімкнено: кожні ${AUTO_REFRESH_INTERVAL} хвилин`);
+            } else {
+                console.log('Автооновлення вимкнено');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const idParam = urlParams.get('id');
+            const landingPage = document.getElementById('landingPage');
+            const mainContent = document.getElementById('mainContent');
+
+            if (!idParam) {
+                landingPage.style.display = 'block';
+                mainContent.style.display = 'none';
+            } else {
+                landingPage.style.display = 'none';
+                mainContent.style.display = 'block';
+                loadAllData();
+                startAutoRefresh();
+            }
+
+            document.getElementById('retryLink').addEventListener('click', function(e) {
+                e.preventDefault();
+                loadAllData();
+            });
+
+            const phoneInput = document.getElementById('customerPhone');
+            phoneInput.addEventListener('input', function(e) {
+                let value = e.target.value;
+                if (!value.startsWith('+38')) {
+                    e.target.value = '+38';
+                } else if (value.length > 3) {
+                    const digits = value.substring(3).replace(/[^0-9]/g, '');
+                    e.target.value = '+38' + digits.substring(0, 10);
+                }
+                document.getElementById('phoneError').style.display = 'none';
+            });
+
+            phoneInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Backspace' && phoneInput.value.length <= 3) {
+                    e.preventDefault();
+                }
+            });
+        });
+
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden && AUTO_REFRESH_INTERVAL > 0) {
+                const lastUpdate = document.getElementById('lastUpdate').textContent;
+                if (!lastUpdate.includes('Останнє оновлення') || 
+                    (Date.now() - new Date(lastUpdate.split(': ')[1]).getTime() > 2 * 60 * 1000)) {
+                    loadAllData();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
