@@ -626,7 +626,7 @@
     </div>
 
     <script>
-                // Глобальні константи
+        // Глобальні константи
         const ALIASES_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSg-032Hj6F202mS9S_G75DD6dpHlmpMzjf5cSw9_XmTsrnekqamSJwOc-BqdQADP-dNrCIsiAaKtud/pub?gid=0&single=true&output=csv';
         const SHEET_NAME = 'exchange';
         const SETTINGS_SHEET_NAME = 'settings';
@@ -651,8 +651,10 @@
         };
 
         function getCurrencyCode(currencyText) {
+            // Извлекаем первые три буквы и проверяем, является ли это допустимым кодом валюты
             const match = currencyText.match(/^([A-Z]{3})/);
-            return match ? match[1] : null;
+            const code = match ? match[1] : null;
+            return code && currencyToCountryCode[code] ? code : null;
         }
 
         function createCurrencyDisplay(currencyText) {
@@ -776,7 +778,6 @@
             }
             try {
                 console.log('Завантаження налаштувань...');
-                // Прямой запрос к Google Sheets без прокси
                 const targetUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?sheet=${SETTINGS_SHEET_NAME}&range=A:C&tqx=out:json`;
 
                 const text = await fetchWithRetry(targetUrl);
@@ -826,14 +827,11 @@
              }   
         }
 
-        
-
         function applyColorStyles() {
             const styleColor = settingsData.styleColor;
             let cssRules = '';
             
             if (styleColor === 'style2') {
-                // Темно-серые цвета
                 cssRules = `
                     .header h1 { color: #4a4a4a !important; }
                     .contact-container h2 { color: #4a4a4a !important; }
@@ -843,7 +841,6 @@
                     .rates-table tbody tr:hover { background: linear-gradient(135deg, rgba(74, 74, 74, 0.1), rgba(45, 45, 45, 0.1)) !important; }
                 `;
             } else if (styleColor === 'style3') {
-                // Темно-синие цвета
                 cssRules = `
                     .header h1 { color: #1e3a8a !important; }
                     .contact-container h2 { color: #1e3a8a !important; }
@@ -853,15 +850,12 @@
                     .rates-table tbody tr:hover { background: linear-gradient(135deg, rgba(30, 58, 138, 0.1), rgba(30, 64, 175, 0.1)) !important; }
                 `;
             }
-            // Если style1 или любое другое значение - используем стандартные стили
             
-            // Удаляем предыдущие стили если они были
             const existingStyleEl = document.getElementById('dynamicStyles');
             if (existingStyleEl) {
                 existingStyleEl.remove();
             }
             
-            // Добавляем новые стили если они есть
             if (cssRules) {
                 const styleEl = document.createElement('style');
                 styleEl.id = 'dynamicStyles';
@@ -876,13 +870,12 @@
             const contactHoursEl = document.getElementById('contactHours');
             const contactAddressEl = document.getElementById('contactAddress');
             const contactContainer = document.getElementById('contactContainer');
-            const orderButton = document.querySelector('.order-button'); // Добавить эту строку
+            const orderButton = document.querySelector('.order-button');
             
             if (settingsData.nameHeader) {
                 headerTitleEl.textContent = settingsData.nameHeader;
             }
             
-            // Проверяем наличие контактных данных и заполняем элементы
             let hasContactData = false;
             
             if (settingsData.ourContacts1) {
@@ -906,21 +899,18 @@
                 contactAddressEl.textContent = '';
             }
             
-            // Показываем или скрываем contactContainer в зависимости от наличия данных
             if (hasContactData) {
                 contactContainer.style.display = 'block';
             } else {
                 contactContainer.style.display = 'none';
             }
             
-            // ДОБАВИТЬ ЭТУ ЛОГИКУ ДЛЯ КНОПКИ ЗАКАЗА
             if (settingsData.visibilityOrderButton === 'on') {
                 orderButton.classList.add('visible');
             } else {
                 orderButton.classList.remove('visible');
             }
             
-            // Применяем стили цветов
             applyColorStyles();
         }
 
@@ -938,7 +928,6 @@
             containerEl.style.display = 'none';
 
             try {
-                // Прямой запрос к Google Sheets без прокси
                 const targetUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?sheet=${SHEET_NAME}&range=A2:C&tqx=out:json`;
 
                 const text = await fetchWithRetry(targetUrl);
@@ -1026,28 +1015,28 @@
             const fromSelect = document.getElementById('fromCurrency');
             const toSelect = document.getElementById('toCurrency');
             
-            // Сохраняем текущие значения
             const currentFrom = fromSelect.value || 'USD';
             const currentTo = toSelect.value || 'UAH';
             
-            const currencies = ['UAH', ...ratesData.map(rate => rate.currency)];
+            const currencies = ratesData.map(rate => ({
+                code: getCurrencyCode(rate.currency) || rate.currency,
+                display: rate.currency
+            }));
             
-            // Очищаем селекторы
+            currencies.unshift({ code: 'UAH', display: 'UAH' });
+            
             fromSelect.innerHTML = '';
             toSelect.innerHTML = '';
             
-            // Заполняем fromCurrency всеми валютами
             currencies.forEach(currency => {
                 const option = document.createElement('option');
-                option.value = currency;
-                option.textContent = currency;
+                option.value = currency.code;
+                option.textContent = currency.display;
                 fromSelect.appendChild(option);
             });
             
-            // Устанавливаем значение для fromCurrency
-            fromSelect.value = currentFrom;
+            fromSelect.value = currencies.some(c => c.code === currentFrom) ? currentFrom : 'USD';
             
-            // Добавляем обработчики событий
             fromSelect.onchange = function() {
                 updateToCurrencyOptions();
                 updateConversion();
@@ -1059,10 +1048,8 @@
                 updateCurrencyFlags();
             };
             
-            // Инициализируем toCurrency на основе выбранного fromCurrency
             updateToCurrencyOptions();
             
-            // Устанавливаем значение для toCurrency если возможно
             if (Array.from(toSelect.options).some(option => option.value === currentTo)) {
                 toSelect.value = currentTo;
             }
@@ -1076,36 +1063,29 @@
             const toSelect = document.getElementById('toCurrency');
             const fromCurrency = fromSelect.value;
             
-            // Сохраняем текущее значение toCurrency
             const currentTo = toSelect.value;
             
-            // Очищаем toCurrency
             toSelect.innerHTML = '';
             
             if (fromCurrency === 'UAH') {
-                // Если выбрана UAH, то доступны все валюты из столбца A (кроме UAH)
                 ratesData.forEach(rate => {
+                    const currencyCode = getCurrencyCode(rate.currency) || rate.currency;
                     const option = document.createElement('option');
-                    option.value = rate.currency;
+                    option.value = currencyCode;
                     option.textContent = rate.currency;
                     toSelect.appendChild(option);
                 });
             } else {
-                // Если выбрана любая другая валюта, то доступна только UAH
                 const option = document.createElement('option');
                 option.value = 'UAH';
                 option.textContent = 'UAH';
                 toSelect.appendChild(option);
             }
             
-            // Пытаемся восстановить предыдущее значение, если оно доступно
             if (Array.from(toSelect.options).some(option => option.value === currentTo)) {
                 toSelect.value = currentTo;
-            } else {
-                // Если предыдущее значение недоступно, выбираем первый доступный вариант
-                if (toSelect.options.length > 0) {
-                    toSelect.value = toSelect.options[0].value;
-                }
+            } else if (toSelect.options.length > 0) {
+                toSelect.value = toSelect.options[0].value;
             }
         }
 
@@ -1113,25 +1093,20 @@
             if (fromCurrency === toCurrency) return { rate: 1, type: 'none' };
 
             if (fromCurrency === 'UAH') {
-                // UAH → валюта: обменник продает валюту за гривны
-                // Используем курс продажи (sell - столбец C)
-                const rateData = ratesData.find(rate => rate.currency === toCurrency);
+                const rateData = ratesData.find(rate => getCurrencyCode(rate.currency) === toCurrency || rate.currency === toCurrency);
                 if (!rateData) {
                     console.error(`Курс для валюты ${toCurrency} не найден`);
                     return { rate: 1, type: 'error' };
                 }
                 return { rate: 1 / parseFloat(rateData.sell), type: 'sell_inverted' };
             } else if (toCurrency === 'UAH') {
-                // валюта → UAH: обменник покупает валюту, отдавая гривны
-                // Используем курс покупки (buy - столбец B)
-                const rateData = ratesData.find(rate => rate.currency === fromCurrency);
+                const rateData = ratesData.find(rate => getCurrencyCode(rate.currency) === fromCurrency || rate.currency === fromCurrency);
                 if (!rateData) {
                     console.error(`Курс для валюты ${fromCurrency} не найден`);
                     return { rate: 1, type: 'error' };
                 }
                 return { rate: parseFloat(rateData.buy), type: 'buy' };
             } else {
-                // Кросс-курсы больше не поддерживаются
                 console.error('Кросс-курсы не поддерживаются. Обмен возможен только через UAH.');
                 return { rate: 1, type: 'error' };
             }
@@ -1143,23 +1118,19 @@
             const fromAmount = parseFloat(document.getElementById('fromAmount').value) || 0;
             const { rate, type } = getExchangeRate(fromCurrency, toCurrency);
             
-            // Оновлюємо toAmount на основі fromAmount
             if (fromAmount > 0) {
                 document.getElementById('toAmount').value = (fromAmount * rate).toFixed(2);
             } else {
                 document.getElementById('toAmount').value = '';
             }
             
-            // Оновлюємо інформацію про курс
             const rateInfo = document.getElementById('exchangeRateInfo');
             if (fromCurrency === toCurrency) {
                 rateInfo.textContent = '1:1';
             } else if (type === 'buy') {
-                // валюта → UAH: показываем курс покупки
                 rateInfo.textContent = `1 ${fromCurrency} = ${rate.toFixed(2)} UAH`;
             } else if (type === 'sell_inverted') {
-                // UAH → валюта: показываем курс продажи
-                const sellRate = ratesData.find(r => r.currency === toCurrency);
+                const sellRate = ratesData.find(r => getCurrencyCode(r.currency) === toCurrency || r.currency === toCurrency);
                 rateInfo.textContent = `1 ${toCurrency} = ${parseFloat(sellRate.sell).toFixed(2)} UAH`;
             } else {
                 rateInfo.textContent = `1 ${fromCurrency} = ${(1/rate).toFixed(4)} ${toCurrency}`;
@@ -1172,23 +1143,19 @@
             const fromAmount = parseFloat(document.getElementById('fromAmount').value) || 0;
             const { rate, type } = getExchangeRate(fromCurrency, toCurrency);
             
-            // Оновлюємо toAmount на основі fromAmount
             if (fromAmount > 0) {
                 document.getElementById('toAmount').value = (fromAmount * rate).toFixed(2);
             } else {
                 document.getElementById('toAmount').value = '';
             }
             
-            // Оновлюємо інформацію про курс
             const rateInfo = document.getElementById('exchangeRateInfo');
             if (fromCurrency === toCurrency) {
                 rateInfo.textContent = '1:1';
             } else if (type === 'buy') {
-                // валюта → UAH: показываем курс покупки
                 rateInfo.textContent = `1 ${fromCurrency} = ${rate.toFixed(2)} UAH`;
             } else if (type === 'sell_inverted') {
-                // UAH → валюта: показываем курс продажи
-                const sellRate = ratesData.find(r => r.currency === toCurrency);
+                const sellRate = ratesData.find(r => getCurrencyCode(r.currency) === toCurrency || r.currency === toCurrency);
                 rateInfo.textContent = `1 ${toCurrency} = ${parseFloat(sellRate.sell).toFixed(2)} UAH`;
             } else {
                 rateInfo.textContent = `1 ${fromCurrency} = ${(1/rate).toFixed(4)} ${toCurrency}`;
@@ -1201,23 +1168,19 @@
             const toAmount = parseFloat(document.getElementById('toAmount').value) || 0;
             const { rate, type } = getExchangeRate(fromCurrency, toCurrency);
             
-            // Оновлюємо fromAmount на основі toAmount
             if (toAmount > 0) {
                 document.getElementById('fromAmount').value = (toAmount / rate).toFixed(2);
             } else {
                 document.getElementById('fromAmount').value = '';
             }
             
-            // Оновлюємо інформацію про курс
             const rateInfo = document.getElementById('exchangeRateInfo');
             if (fromCurrency === toCurrency) {
                 rateInfo.textContent = '1:1';
             } else if (type === 'buy') {
-                // валюта → UAH: показываем курс покупки
                 rateInfo.textContent = `1 ${fromCurrency} = ${rate.toFixed(2)} UAH`;
             } else if (type === 'sell_inverted') {
-                // UAH → валюта: показываем курс продажи
-                const sellRate = ratesData.find(r => r.currency === toCurrency);
+                const sellRate = ratesData.find(r => getCurrencyCode(r.currency) === toCurrency || r.currency === toCurrency);
                 rateInfo.textContent = `1 ${toCurrency} = ${parseFloat(sellRate.sell).toFixed(2)} UAH`;
             } else {
                 rateInfo.textContent = `1 ${fromCurrency} = ${(1/rate).toFixed(4)} ${toCurrency}`;
@@ -1269,12 +1232,10 @@
             let rateDisplay, operationType;
 
             if (type === 'buy') {
-                // валюта → UAH: показываем курс покупки
                 rateDisplay = rate.toFixed(2);
                 operationType = 'купівля';
             } else if (type === 'sell_inverted') {
-                // UAH → валюта: показываем курс продажи
-                const sellRate = ratesData.find(r => r.currency === toCurrency);
+                const sellRate = ratesData.find(r => getCurrencyCode(r.currency) === toCurrency || r.currency === toCurrency);
                 rateDisplay = parseFloat(sellRate.sell).toFixed(2);
                 operationType = 'продаж';
             } else {
@@ -1368,7 +1329,6 @@ const message = `
                 loadAllData();
             });
 
-            // Phone input handling
             const phoneInput = document.getElementById('customerPhone');
             phoneInput.addEventListener('input', function(e) {
                 let value = e.target.value;
