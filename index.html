@@ -778,7 +778,7 @@
             }
             try {
                 console.log('Завантаження налаштувань...');
-                const targetUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?sheet=${SETTINGS_SHEET_NAME}&range=A:C&tqx=out:json`;
+                const targetUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?sheet=${SETTINGS_SHEET_NAME}&range=A1:C100&tqx=out:json`;
 
                 const text = await fetchWithRetry(targetUrl);
                 
@@ -788,6 +788,7 @@
                     jsonText = jsonText.substring(0, jsonText.length - 2);
                 }
                 
+                console.log('JSON текст:', jsonText); // Дебаг: виводимо сирий JSON
                 const jsonData = JSON.parse(jsonText);
                 
                 if (!jsonData.table || !jsonData.table.rows) {
@@ -798,15 +799,31 @@
                 const rows = jsonData.table.rows;
                 settingsData = {};
 
+                console.log('Сирі дані рядків:', rows); // Дебаг: виводимо сирі дані
+
                 for (let i = 0; i < rows.length; i++) {
                     const row = rows[i];
-                    if (row.c && row.c.length >= 3) {
-                        const settingName = row.c[0] ? (row.c[0].v || '') : '';
-                        const settingValue = row.c[2] ? (row.c[2].v || '') : '';
+                    if (!row.c || !row.c[0] || !row.c[0].v) {
+                        console.warn(`Пропущено рядок ${i + 1}: відсутня назва настройки`); // Дебаг
+                        continue;
+                    }
 
-                        if (settingName && settingValue !== '') {
-                            settingsData[settingName.toString()] = settingValue.toString();
-                        }
+                    const settingName = row.c[0].v.toString().trim();
+                    let settingValue = '';
+
+                    // Перевіряємо, чи є значення в стовпці C
+                    if (row.c[2] && row.c[2].v !== null && row.c[2].v !== undefined) {
+                        settingValue = row.c[2].v.toString().trim(); // Перетворюємо в рядок
+                    } else {
+                        console.warn(`Пропущено рядок ${i + 1}: відсутнє значення для ${settingName}`); // Дебаг
+                        continue;
+                    }
+
+                    if (settingName && settingValue !== '') {
+                        settingsData[settingName] = settingValue;
+                        console.log(`Завантажено настройку: ${settingName} = ${settingValue} (тип: ${typeof row.c[2].v})`); // Дебаг
+                    } else {
+                        console.warn(`Пропущено рядок ${i + 1}: name=${settingName}, value=${settingValue}`); // Дебаг
                     }
                 }
 
@@ -824,7 +841,7 @@
                 } else {
                     document.getElementById('contactContainer').style.display = 'none';
                 }
-             }   
+            }   
         }
 
         function applyColorStyles() {
