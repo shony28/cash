@@ -31,7 +31,7 @@
 
         .header h1 {
             font-size: 2.5rem;
-            margin-bottom: 10px;
+            margin-top: 25px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
             color: #524785;
         }
@@ -596,7 +596,7 @@
             <div id="converterModal" class="modal">
                 <div class="modal-content">
                     <span class="close-button" onclick="closeModal()">&times;</span>
-                    <h2>Конвертер валют</h2>
+                    <h2>Обмін валют</h2>
                     <div class="converter-section">
                         <label>Віддаєте <img id="fromCurrencyFlag" class="converter-flag" src="" alt="" style="display: none;"></label>
                         <select id="fromCurrency" onchange="updateConversion()">
@@ -831,7 +831,7 @@
             const styleColor = settingsData.styleColor;
             let cssRules = '';
             
-            if (styleColor === 'style2') {
+            if (styleColor === 'elegant-gray') {
                 cssRules = `
                     .header h1 { color: #4a4a4a !important; }
                     .contact-container h2 { color: #4a4a4a !important; }
@@ -840,7 +840,7 @@
                     .landing-button, .order-button { background: linear-gradient(135deg, #4a4a4a, #2d2d2d) !important; }
                     .rates-table tbody tr:hover { background: linear-gradient(135deg, rgba(74, 74, 74, 0.1), rgba(45, 45, 45, 0.1)) !important; }
                 `;
-            } else if (styleColor === 'style3') {
+            } else if (styleColor === 'royal-blue') {
                 cssRules = `
                     .header h1 { color: #1e3a8a !important; }
                     .contact-container h2 { color: #1e3a8a !important; }
@@ -848,6 +848,78 @@
                     .rates-table thead { background: linear-gradient(135deg, #1e3a8a, #1e40af) !important; }
                     .landing-button, .order-button { background: linear-gradient(135deg, #1e3a8a, #1e40af) !important; }
                     .rates-table tbody tr:hover { background: linear-gradient(135deg, rgba(30, 58, 138, 0.1), rgba(30, 64, 175, 0.1)) !important; }
+                `;
+            } else if (styleColor === 'forest-green') {
+                cssRules = `
+                    .header h1 { color: #065f46 !important; }
+                    .contact-container h2 { color: #065f46 !important; }
+                    .landing-container h1 { color: #065f46 !important; }
+                    .rates-table thead { background: linear-gradient(135deg, #065f46, #047857) !important; }
+                    .landing-button, .order-button { background: linear-gradient(135deg, #065f46, #047857) !important; }
+                    .rates-table tbody tr:hover { background: linear-gradient(135deg, rgba(6, 95, 70, 0.1), rgba(4, 120, 87, 0.1)) !important; }
+                `;
+            } else if (styleColor === 'sunset-orange') {
+                cssRules = `
+                    .header h1 { color: #c2410c !important; }
+                    .contact-container h2 { color: #c2410c !important; }
+                    .landing-container h1 { color: #c2410c !important; }
+                    .rates-table thead { background: linear-gradient(135deg, #c2410c, #ea580c) !important; }
+                    .landing-button, .order-button { background: linear-gradient(135deg, #c2410c, #ea580c) !important; }
+                    .rates-table tbody tr:hover { background: linear-gradient(135deg, rgba(194, 65, 12, 0.1), rgba(234, 88, 12, 0.1)) !important; }
+                `;
+            } else if (styleColor === 'deep-purple') {
+                cssRules = `
+                    .header h1 { color: #581c87 !important; }
+                    .contact-container h2 { color: #581c87 !important; }
+                    .landing-container h1 { color: #581c87 !important; }
+                    .rates-table thead { background: linear-gradient(135deg, #581c87, #7c3aed) !important; }
+                    .landing-button, .order-button { background: linear-gradient(135deg, #581c87, #7c3aed) !important; }
+                    .rates-table tbody tr:hover { background: linear-gradient(135deg, rgba(88, 28, 135, 0.1), rgba(124, 58, 237, 0.1)) !important; }
+                `;
+            } else if (styleColor === 'ruby-red') {
+                cssRules = `
+                    .header h1 { color: #be123c !important; }
+                    .contact-container h2 { color: #be123c !important; }
+                    .landing-container h1 { color: #be123c !important; }
+                    .rates-table thead { background: linear-gradient(135deg, #be123c, #e11d48) !important; }
+                    .landing-button, .order-button { background: linear-gradient(135deg, #be123c, #e11d48) !important; }
+                    .rates-table tbody tr:hover { background: linear-gradient(135deg, rgba(190, 18, 60, 0.1), rgba(225, 29, 72, 0.1)) !important; }
+                `;
+            } else if (styleColor === 'ocean-teal') {
+                cssRules = `
+                    .header h1 { color: #0f766e !important; }
+                    .contact-container h2 { color: #0f766e !important; }
+                    .landing-container h1 { color: #0f766e !important; }
+                    .rates-table thead { background: linear-gradient(135deg, #0f766e, #14b8a6) !important; }
+                    .landing-button, .order-button { background: linear-gradient(135deg, #0f766e, #14b8a6) !important; }
+                    .rates-table tbody tr:hover { background: linear-gradient(135deg, rgba(15, 118, 110, 0.1), rgba(20, 184, 166, 0.1)) !important; }
+                `;
+            } else if (styleColor === 'golden-amber') {
+                cssRules = `
+                    .header h1 { color: #d97706 !important; }
+                    .contact-container h2 { color: #d97706 !important; }
+                    .landing-container h1 { color: #d97706 !important; }
+                    .rates-table thead { background: linear-gradient(135deg, #d97706, #f59e0b) !important; }
+                    .landing-button, .order-button { background: linear-gradient(135deg, #d97706, #f59e0b) !important; }
+                    .rates-table tbody tr:hover { background: linear-gradient(135deg, rgba(217, 119, 6, 0.1), rgba(245, 158, 11, 0.1)) !important; }
+                `;
+            } else if (styleColor === 'midnight-black') {
+                cssRules = `
+                    .header h1 { color: #1f2937 !important; }
+                    .contact-container h2 { color: #1f2937 !important; }
+                    .landing-container h1 { color: #1f2937 !important; }
+                    .rates-table thead { background: linear-gradient(135deg, #1f2937, #374151) !important; }
+                    .landing-button, .order-button { background: linear-gradient(135deg, #1f2937, #374151) !important; }
+                    .rates-table tbody tr:hover { background: linear-gradient(135deg, rgba(31, 41, 55, 0.1), rgba(55, 65, 81, 0.1)) !important; }
+                `;
+            } else if (styleColor === 'rose-pink') {
+                cssRules = `
+                    .header h1 { color: #be185d !important; }
+                    .contact-container h2 { color: #be185d !important; }
+                    .landing-container h1 { color: #be185d !important; }
+                    .rates-table thead { background: linear-gradient(135deg, #be185d, #ec4899) !important; }
+                    .landing-button, .order-button { background: linear-gradient(135deg, #be185d, #ec4899) !important; }
+                    .rates-table tbody tr:hover { background: linear-gradient(135deg, rgba(190, 24, 93, 0.1), rgba(236, 72, 153, 0.1)) !important; }
                 `;
             }
             
@@ -863,6 +935,9 @@
                 document.head.appendChild(styleEl);
             }
         }
+
+
+
 
         function applySettings() {
             const headerTitleEl = document.getElementById('headerTitle');
