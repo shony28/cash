@@ -1609,8 +1609,9 @@ function displayCityDropdown(cities) {
         const option = document.createElement('div');
         option.className = 'city-option';
         option.innerHTML = `
+            <div class="city-details">${escapeHtml(city.type)}</div>
             <div class="city-name">${escapeHtml(city.name)}</div>
-            <div class="city-details">${escapeHtml(city.type)}, ${escapeHtml(city.region)}</div>
+            <div class="city-details">${escapeHtml(city.region)}</div>
         `;
         
         option.addEventListener('click', () => {
