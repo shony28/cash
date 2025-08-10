@@ -644,6 +644,27 @@
     padding: 5px 0;
     color: #333;
 }
+.landing-container .logo {
+    max-width: 150px;
+    height: auto;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+@media (max-width: 768px) {
+    .landing-container .logo {
+        max-width: 120px;
+        margin-bottom: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .landing-container .logo {
+        max-width: 100px;
+        margin-bottom: 10px;
+    }
+}
 
     </style>
 </head>
@@ -652,6 +673,7 @@
         <div id="landingPage" style="display: none;">
             <!-- Первая страница - Информация о сервисе -->
             <div id="servicePage" class="landing-container">
+                <img src="logo.png" alt="Cash Exchange Logo" class="logo" onerror="this.style.display='none'">
                 <h1>Вітаємо на Cash Exchange</h1>
                 <p>Створюйте власні таблиці курсів валют для вашого обмінника за допомогою нашого зручного шаблону Google Sheets.</p>
                 
@@ -664,6 +686,7 @@
             
             <!-- Вторая страница - Поисковик обменников -->
             <div id="searchPage" class="landing-container" style="display: none;">
+                <img src="logo.png" alt="Cash Exchange Logo" class="logo" onerror="this.style.display='none'">
                 <h1>Пошук обмінників</h1>
                 <p>Знайдіть обмінники валют у вашому місті, які вже підключились до нашого сервісу.</p>
                 
