@@ -1627,7 +1627,7 @@ function displayCityDropdown(cities) {
 
 function selectCity(selectedCity) {
     const searchInput = document.getElementById('citySearch');
-    searchInput.value = `${selectedCity.name} (${selectedCity.type}, ${selectedCity.region})`;
+    searchInput.value = `${selectedCity.type} ${selectedCity.name} (${selectedCity.region})`;
     
     // Найти соответствующие обменники
     const exchangers = sheetIdData.filter(sheet => 
