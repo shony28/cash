@@ -542,7 +542,106 @@
             .currency-cell {
                 justify-content: center;
             }
+
         }
+
+        .city-selector {
+    margin-bottom: 30px;
+    position: relative;
+}
+
+.city-selector label {
+    display: block;
+    font-size: 1.2rem;
+    color: #333;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.city-search-container {
+    position: relative;
+    width: 100%;
+}
+
+.city-search-input {
+    width: 100%;
+    padding: 15px;
+    font-size: 1.1rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    transition: border-color 0.3s ease;
+}
+
+.city-search-input:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.city-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 0 0 10px 10px;
+    max-height: 300px;
+    overflow-y: auto;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    z-index: 1000;
+    display: none;
+}
+
+.city-option {
+    padding: 12px 15px;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+    transition: background-color 0.2s ease;
+}
+
+.city-option:hover {
+    background-color: #f8f9ff;
+}
+
+.city-option:last-child {
+    border-bottom: none;
+}
+
+.city-option .city-name {
+    font-weight: 600;
+    color: #333;
+}
+
+.city-option .city-details {
+    font-size: 0.9rem;
+    color: #666;
+    margin-top: 2px;
+}
+
+.city-results {
+    margin-top: 20px;
+    padding: 15px;
+    background: rgba(102, 126, 234, 0.1);
+    border-radius: 10px;
+    display: none;
+}
+
+.city-results h3 {
+    margin-bottom: 10px;
+    color: #524785;
+}
+
+.city-results ul {
+    list-style: none;
+    padding: 0;
+}
+
+.city-results li {
+    padding: 5px 0;
+    color: #333;
+}
+
     </style>
 </head>
 <body>
@@ -551,6 +650,19 @@
             <div class="landing-container">
                 <h1>Вітаємо на Cash Exchange</h1>
                 <p>Створюйте власні таблиці курсів валют для вашого обмінника за допомогою нашого зручного шаблону Google Sheets.</p>
+                
+                <div class="city-selector">
+                    <label for="citySearch">Оберіть ваше місто:</label>
+                    <div class="city-search-container">
+                        <input type="text" id="citySearch" class="city-search-input" placeholder="Почніть вводити назву міста..." autocomplete="off">
+                        <div id="cityDropdown" class="city-dropdown"></div>
+                    </div>
+                    <div id="cityResults" class="city-results">
+                        <h3>Доступні обмінники:</h3>
+                        <ul id="exchangersList"></ul>
+                    </div>
+                </div>
+                
                 <a href="https://docs.google.com/spreadsheets/d/1CyR606M-AoZ2o8BgX9dO2AP-WwQwTSRNTHK6pJhjw3A/copy" class="landing-button" target="_blank">Створити копію таблиці</a>
             </div>
         </div>
@@ -634,11 +746,15 @@
         const MAX_RETRIES = 3;
         const RETRY_DELAY = 2000;
         const TELEGRAM_TOKEN = '8351448789:AAGemrq_p_9r2leWpCkI87rrKJHJnW209cg';
+        const CITIES_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSg-032Hj6F202mS9S_G75DD6dpHlmpMzjf5cSw9_XmTsrnekqamSJwOc-BqdQADP-dNrCIsiAaKtud/pub?gid=1751322691&single=true&output=csv';
+        const SHEETID_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSg-032Hj6F202mS9S_G75DD6dpHlmpMzjf5cSw9_XmTsrnekqamSJwOc-BqdQADP-dNrCIsiAaKtud/pub?gid=1519667203&single=true&output=csv';
       
 
         let ratesData = [];
         let settingsData = {};
         let SPREADSHEET_ID = null;
+        let citiesData = [];
+        let sheetIdData = [];
 
         const currencyToCountryCode = {
             'EUR': 'eu', 'USD': 'us', 'GBP': 'gb', 'PLN': 'pl', 'CZK': 'cz',
@@ -1407,6 +1523,191 @@
             return div.innerHTML;
         }
 
+
+
+        async function loadCitiesData() {
+    try {
+        console.log('Завантаження даних міст...');
+        const response = await fetchWithRetry(CITIES_CSV_URL);
+        const lines = response.trim().split('\n');
+        
+        citiesData = [];
+        for (let i = 0; i < lines.length; i++) {
+            const columns = lines[i].split(',');
+            if (columns.length >= 3) {
+                const type = columns[0]?.trim() || '';
+                const name = columns[1]?.trim() || '';
+                const region = columns[2]?.trim() || '';
+                
+                if (type && name && region) {
+                    citiesData.push({
+                        type: type,
+                        name: name,
+                        region: region
+                    });
+                }
+            }
+        }
+        
+        console.log('Дані міст завантажено:', citiesData.length);
+    } catch (error) {
+        console.error('Помилка завантаження даних міст:', error);
+    }
+}
+
+async function loadSheetIdData() {
+    try {
+        console.log('Завантаження даних таблиць...');
+        const response = await fetchWithRetry(SHEETID_CSV_URL);
+        const lines = response.trim().split('\n');
+        
+        sheetIdData = [];
+        for (let i = 0; i < lines.length; i++) {
+            const columns = lines[i].split(',');
+            if (columns.length >= 6) {
+                const sheetId = columns[1]?.trim() || '';
+                const type = columns[3]?.trim() || '';
+                const name = columns[4]?.trim() || '';
+                const region = columns[5]?.trim() || '';
+                
+                if (sheetId && type && name && region) {
+                    sheetIdData.push({
+                        sheetId: sheetId,
+                        type: type,
+                        name: name,
+                        region: region
+                    });
+                }
+            }
+        }
+        
+        console.log('Дані таблиць завантажено:', sheetIdData.length);
+    } catch (error) {
+        console.error('Помилка завантаження даних таблиць:', error);
+    }
+}
+
+function filterCities(searchTerm) {
+    if (!searchTerm || searchTerm.length < 2) return [];
+    
+    const term = searchTerm.toLowerCase();
+    return citiesData.filter(city => 
+        city.name.toLowerCase().includes(term)
+    ).slice(0, 20); // Ограничиваем до 20 результатов
+}
+
+function displayCityDropdown(cities) {
+    const dropdown = document.getElementById('cityDropdown');
+    
+    if (cities.length === 0) {
+        dropdown.style.display = 'none';
+        return;
+    }
+    
+    dropdown.innerHTML = '';
+    cities.forEach(city => {
+        const option = document.createElement('div');
+        option.className = 'city-option';
+        option.innerHTML = `
+            <div class="city-name">${escapeHtml(city.name)}</div>
+            <div class="city-details">${escapeHtml(city.type)}, ${escapeHtml(city.region)}</div>
+        `;
+        
+        option.addEventListener('click', () => {
+            selectCity(city);
+            dropdown.style.display = 'none';
+        });
+        
+        dropdown.appendChild(option);
+    });
+    
+    dropdown.style.display = 'block';
+}
+
+function selectCity(selectedCity) {
+    const searchInput = document.getElementById('citySearch');
+    searchInput.value = `${selectedCity.name} (${selectedCity.type}, ${selectedCity.region})`;
+    
+    // Найти соответствующие обменники
+    const exchangers = sheetIdData.filter(sheet => 
+        sheet.type.toLowerCase() === selectedCity.type.toLowerCase() &&
+        sheet.name.toLowerCase() === selectedCity.name.toLowerCase() &&
+        sheet.region.toLowerCase() === selectedCity.region.toLowerCase()
+    );
+    
+    displayExchangers(exchangers);
+}
+
+function displayExchangers(exchangers) {
+    const resultsDiv = document.getElementById('cityResults');
+    const exchangersList = document.getElementById('exchangersList');
+    
+    if (exchangers.length === 0) {
+        resultsDiv.style.display = 'none';
+        return;
+    }
+    
+    exchangersList.innerHTML = '';
+    exchangers.forEach(exchanger => {
+        const li = document.createElement('li');
+        const link = document.createElement('a');
+        link.href = `?id=${exchanger.sheetId}`;
+        link.textContent = `Обмінник ${exchanger.name}`;
+        link.style.color = '#524785';
+        link.style.textDecoration = 'none';
+        link.style.fontWeight = '600';
+        
+        link.addEventListener('mouseenter', function() {
+            this.style.textDecoration = 'underline';
+        });
+        
+        link.addEventListener('mouseleave', function() {
+            this.style.textDecoration = 'none';
+        });
+        
+        li.appendChild(link);
+        exchangersList.appendChild(li);
+    });
+    
+    resultsDiv.style.display = 'block';
+}
+
+function setupCitySearch() {
+    const searchInput = document.getElementById('citySearch');
+    const dropdown = document.getElementById('cityDropdown');
+    
+    searchInput.addEventListener('input', function(e) {
+        const searchTerm = e.target.value;
+        if (searchTerm.includes('(')) {
+            // Если пользователь редактирует уже выбранный город, очищаем результаты
+            document.getElementById('cityResults').style.display = 'none';
+            return;
+        }
+        
+        const filteredCities = filterCities(searchTerm);
+        displayCityDropdown(filteredCities);
+        
+        if (searchTerm.length === 0) {
+            document.getElementById('cityResults').style.display = 'none';
+        }
+    });
+    
+    // Закрыть dropdown при клике вне его
+    document.addEventListener('click', function(e) {
+        if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
+            dropdown.style.display = 'none';
+        }
+    });
+    
+    searchInput.addEventListener('focus', function() {
+        if (this.value && !this.value.includes('(')) {
+            const filteredCities = filterCities(this.value);
+            displayCityDropdown(filteredCities);
+        }
+    });
+}
+
+
         async function loadAllData() {
             try {
                 await getSpreadsheetId();
@@ -1442,6 +1743,11 @@
             if (!idParam) {
                 landingPage.style.display = 'block';
                 mainContent.style.display = 'none';
+                
+                // Загрузить данные городов и настроить поиск
+                Promise.all([loadCitiesData(), loadSheetIdData()]).then(() => {
+                    setupCitySearch();
+                });
             } else {
                 landingPage.style.display = 'none';
                 mainContent.style.display = 'block';
@@ -1485,6 +1791,4 @@
     </script>
 </body>
 </html>
-
-
 
