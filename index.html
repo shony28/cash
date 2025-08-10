@@ -1582,18 +1582,20 @@ async function loadSheetIdData() {
         sheetIdData = [];
         for (let i = 0; i < lines.length; i++) {
             const columns = lines[i].split(',');
-            if (columns.length >= 6) {
+            if (columns.length >= 7) { // Изменено с 6 на 7
                 const sheetId = columns[1]?.trim() || '';
                 const type = columns[3]?.trim() || '';
                 const name = columns[4]?.trim() || '';
                 const region = columns[5]?.trim() || '';
+                const displayName = columns[6]?.trim() || ''; // Добавлено для столбца G
                 
                 if (sheetId && type && name && region) {
                     sheetIdData.push({
                         sheetId: sheetId,
                         type: type,
                         name: name,
-                        region: region
+                        region: region,
+                        displayName: displayName // Добавлено
                     });
                 }
             }
@@ -1657,7 +1659,7 @@ function selectCity(selectedCity) {
     displayExchangers(exchangers);
 }
 
-async function displayExchangers(exchangers) {
+function displayExchangers(exchangers) {
     const resultsDiv = document.getElementById('cityResults');
     const exchangersList = document.getElementById('exchangersList');
     
@@ -1666,91 +1668,30 @@ async function displayExchangers(exchangers) {
         return;
     }
     
-    exchangersList.innerHTML = '<li>Завантаження...</li>';
-    resultsDiv.style.display = 'block';
-    
-    try {
-        const exchangerNames = await Promise.all(
-            exchangers.map(async (exchanger) => {
-                try {
-                    const nameHeader = await getNameHeaderForExchanger(exchanger.sheetId);
-                    return {
-                        sheetId: exchanger.sheetId,
-                        displayName: nameHeader || `Обмінник ${exchanger.name}`
-                    };
-                } catch (error) {
-                    console.error(`Помилка завантаження назви для ${exchanger.sheetId}:`, error);
-                    return {
-                        sheetId: exchanger.sheetId,
-                        displayName: `Обмінник ${exchanger.name}`
-                    };
-                }
-            })
-        );
+    exchangersList.innerHTML = '';
+    exchangers.forEach(exchanger => {
+        const li = document.createElement('li');
+        const link = document.createElement('a');
+        link.href = `?id=${exchanger.sheetId}`;
+        // Изменено: используем displayName из столбца G или fallback к старому формату
+        link.textContent = exchanger.displayName || `Обмінник ${exchanger.name}`;
+        link.style.color = '#524785';
+        link.style.textDecoration = 'none';
+        link.style.fontWeight = '600';
         
-        exchangersList.innerHTML = '';
-        exchangerNames.forEach(exchanger => {
-            const li = document.createElement('li');
-            const link = document.createElement('a');
-            link.href = `?id=${exchanger.sheetId}`;
-            link.textContent = exchanger.displayName;
-            link.style.color = '#524785';
-            link.style.textDecoration = 'none';
-            link.style.fontWeight = '600';
-            
-            link.addEventListener('mouseenter', function() {
-                this.style.textDecoration = 'underline';
-            });
-            
-            link.addEventListener('mouseleave', function() {
-                this.style.textDecoration = 'none';
-            });
-            
-            li.appendChild(link);
-            exchangersList.appendChild(li);
+        link.addEventListener('mouseenter', function() {
+            this.style.textDecoration = 'underline';
         });
-    } catch (error) {
-        console.error('Помилка завантаження списку обмінників:', error);
-        exchangersList.innerHTML = '<li>Помилка завантаження</li>';
-    }
-}
-
-async function getNameHeaderForExchanger(spreadsheetId) {
-    try {
-        const targetUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?sheet=${SETTINGS_SHEET_NAME}&range=A:C&tqx=out:json`;
-        const text = await fetchWithRetry(targetUrl);
         
-        let jsonText = text.trim();
-        if (jsonText.startsWith('/*O_o*/\ngoogle.visualization.Query.setResponse(')) {
-            jsonText = jsonText.substring(47);
-            jsonText = jsonText.substring(0, jsonText.length - 2);
-        }
+        link.addEventListener('mouseleave', function() {
+            this.style.textDecoration = 'none';
+        });
         
-        const jsonData = JSON.parse(jsonText);
-        
-        if (!jsonData.table || !jsonData.table.rows) {
-            return null;
-        }
-
-        const rows = jsonData.table.rows;
-        
-        for (let i = 0; i < rows.length; i++) {
-            const row = rows[i];
-            if (row.c && row.c.length >= 3) {
-                const settingName = row.c[0] ? (row.c[0].v || '') : '';
-                const settingValue = row.c[2] ? (row.c[2].v || '') : '';
-
-                if (settingName.toString() === 'nameHeader' && settingValue !== '') {
-                    return settingValue.toString();
-                }
-            }
-        }
-        
-        return null;
-    } catch (error) {
-        console.error(`Помилка завантаження nameHeader для таблиці ${spreadsheetId}:`, error);
-        return null;
-    }
+        li.appendChild(link);
+        exchangersList.appendChild(li);
+    });
+    
+    resultsDiv.style.display = 'block';
 }
 
 function setupCitySearch() {
@@ -1896,4 +1837,3 @@ function setupCitySearch() {
     </script>
 </body>
 </html>
-
