@@ -1573,6 +1573,42 @@
     }
 }
 
+function parseCSVLine(line) {
+    const result = [];
+    let current = '';
+    let inQuotes = false;
+    let i = 0;
+    
+    while (i < line.length) {
+        const char = line[i];
+        
+        if (char === '"') {
+            if (inQuotes && line[i + 1] === '"') {
+                // Двойные кавычки внутри кавычек - это экранированная кавычка
+                current += '"';
+                i += 2;
+            } else {
+                // Переключение режима кавычек
+                inQuotes = !inQuotes;
+                i++;
+            }
+        } else if (char === ',' && !inQuotes) {
+            // Запятая вне кавычек - разделитель столбцов
+            result.push(current);
+            current = '';
+            i++;
+        } else {
+            current += char;
+            i++;
+        }
+    }
+    
+    // Добавить последний столбец
+    result.push(current);
+    
+    return result;
+}
+
 async function loadSheetIdData() {
     try {
         console.log('Завантаження даних таблиць...');
@@ -1581,13 +1617,14 @@ async function loadSheetIdData() {
         
         sheetIdData = [];
         for (let i = 0; i < lines.length; i++) {
-            const columns = lines[i].split(',');
-            if (columns.length >= 7) { // Изменено с 6 на 7
+            // Парсинг CSV с учетом кавычек
+            const columns = parseCSVLine(lines[i]);
+            if (columns.length >= 7) {
                 const sheetId = columns[1]?.trim() || '';
                 const type = columns[3]?.trim() || '';
                 const name = columns[4]?.trim() || '';
                 const region = columns[5]?.trim() || '';
-                const displayName = columns[6]?.trim() || ''; // Добавлено для столбца G
+                const displayName = columns[6]?.trim() || '';
                 
                 if (sheetId && type && name && region) {
                     sheetIdData.push({
@@ -1595,7 +1632,7 @@ async function loadSheetIdData() {
                         type: type,
                         name: name,
                         region: region,
-                        displayName: displayName // Добавлено
+                        displayName: displayName
                     });
                 }
             }
