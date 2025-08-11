@@ -1885,6 +1885,9 @@ function setupCitySearch() {
                 Promise.all([loadCitiesData(), loadSheetIdData()]).then(() => {
                     setupCitySearch();
                 });
+            } else {
+                // Вызывать setupCitySearch() даже если данные уже загружены
+                setupCitySearch();
             }
         }
 
@@ -1896,4 +1899,3 @@ function setupCitySearch() {
     </script>
 </body>
 </html>
-
