@@ -665,327 +665,44 @@
     }
 }
 
-/* Новые стили для лэндинга */
-.cash,
-.cash * {
-    box-sizing: border-box;
-}
-
-.cash {
-    height: 100vh;
-    min-height: 800px;
-    position: relative;
-    width: 100%;
-    overflow: hidden;
-}
-
-.cashbg {
-    width: 100%;
-    height: 100%;
-    position: absolute;
-    top: 0;
-    left: 0;
-}
-
-.cashbg2 {
-    background: #ffffff;
-    width: 100%;
-    height: 50%;
-    position: absolute;
-    left: 0;
-    top: 0;
-}
-
-.cashbitmap {
-    opacity: 0.02;
-    width: 100%;
-    height: 100%;
-    position: absolute;
-    left: 0;
-    top: 0;
-    object-fit: cover;
-}
-
-.cash_181-1-x-shots-so-1 {
-    width: clamp(300px, 40vw, 604px);
-    height: auto;
-    position: absolute;
-    right: 5%;
-    top: 50%;
-    transform: translateY(-50%);
-    object-fit: cover;
-    aspect-ratio: 604/609;
-}
-
-.cashcontent {
-    width: clamp(300px, 45%, 541px);
-    height: auto;
-    position: absolute;
-    left: clamp(20px, 15%, 244px);
-    top: 50%;
-    transform: translateY(-50%);
-    overflow: hidden;
-}
-
-.cashshift-your-business {
-    color: #161c2d;
-    text-align: left;
-    font-family: "Arsenal-Regular", sans-serif;
-    font-size: clamp(2rem, 5vw, 3rem);
-    line-height: 1.35;
-    letter-spacing: -2px;
-    font-weight: 400;
-    margin-bottom: 20px;
-}
-
-.cashwith-lots-of-unique {
-    color: #161c2d;
-    text-align: left;
-    font-family: "Arsenal-Regular", sans-serif;
-    font-size: clamp(1rem, 2vw, 1.25rem);
-    line-height: 1.6;
-    letter-spacing: -0.2px;
-    font-weight: 400;
-    opacity: 0.7;
-    margin-bottom: 30px;
-}
-
-.cashbutton-solid-style-04 {
-    width: 220px;
-    height: 59px;
-    position: relative;
-}
-
-.cashbutton-1 {
-    width: 100%;
-    height: 100%;
-    position: relative;
-    overflow: hidden;
-}
-
-.cashrectangle {
-    background: linear-gradient(90deg, rgba(102, 126, 234, 1) 0%, rgba(118, 75, 162, 1) 100%);
-    border-radius: 8px;
-    width: 100%;
-    height: 100%;
-    position: absolute;
-    right: 0%;
-    left: 0%;
-    bottom: 0%;
-    top: 0%;
-}
-
-.cashbutton-name {
-    color: #ffffff;
-    text-align: center;
-    font-family: "Arsenal-Bold", sans-serif;
-    font-size: 16px;
-    line-height: 38px;
-    font-weight: 700;
-    position: absolute;
-    right: 0%;
-    left: 0%;
-    width: 100%;
-    top: 50%;
-    transform: translateY(-50%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-decoration: none;
-    transition: all 0.3s ease;
-}
-
-.cashbutton-name:hover {
-    color: #ffffff;
-    text-decoration: none;
-}
-
-.cashbutton-1:hover .cashrectangle {
-    background: linear-gradient(90deg, rgba(92, 116, 224, 1) 0%, rgba(108, 65, 152, 1) 100%);
-}
-
-.cashheader {
-    width: clamp(300px, 90%, 1187px);
-    height: 127px;
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    top: 16px;
-    overflow: visible;
-}
-
-.cashlogo-transparent-png-crop-3-1 {
-    width: 69px;
-    height: 70px;
-    position: absolute;
-    left: 0;
-    top: 32px;
-    object-fit: cover;
-    aspect-ratio: 69/70;
-}
-
-.cashshadepro {
-    color: #161c2d;
-    text-align: left;
-    font-family: "Arsenal-Regular", sans-serif;
-    font-size: 24px;
-    letter-spacing: -0.13px;
-    font-weight: 400;
-    position: absolute;
-    left: 90px;
-    top: 50%;
-    transform: translateY(-50%);
-}
-
-.cashsearch-field {
-    background: #ffffff;
-    border-radius: 10px;
-    padding: 16px;
-    display: flex;
-    flex-direction: row;
-    gap: 8px;
-    align-items: center;
-    justify-content: flex-start;
-    width: 372px;
-    height: 56px;
-    position: absolute;
-    right: 0;
-    top: 39px;
-    box-shadow: 1px 2px 7.8px 0px rgba(0, 0, 0, 0.25);
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.cashsearch-field:hover {
-    box-shadow: 1px 4px 12px 0px rgba(0, 0, 0, 0.35);
-}
-
-.cashicon-32-px-search {
-    flex-shrink: 0;
-    width: 24px;
-    height: 24px;
-    position: relative;
-    overflow: visible;
-}
-
-.cashdiv {
-    color: #656565;
-    text-align: left;
-    font-family: "Inter-Medium", sans-serif;
-    font-size: 14px;
-    line-height: 18px;
-    font-weight: 500;
-    opacity: 0.5;
-    position: relative;
-}
-
-/* Адаптивность для мобильных устройств */
-@media (max-width: 768px) {
-    .cash {
-        height: auto;
-        min-height: 100vh;
-    }
-    
-    .cash_181-1-x-shots-so-1 {
-        position: relative;
-        right: auto;
-        top: auto;
-        transform: none;
-        width: 90%;
-        margin: 20px auto;
-        display: block;
-    }
-    
-    .cashcontent {
-        position: relative;
-        left: auto;
-        top: auto;
-        transform: none;
-        width: 90%;
-        margin: 20px auto;
-        text-align: center;
-    }
-    
-    .cashheader {
-        position: relative;
-        left: auto;
-        transform: none;
-        width: 100%;
-        height: auto;
-        padding: 20px;
-        margin-bottom: 20px;
-    }
-    
-    .cashshadepro {
-        position: relative;
-        left: auto;
-        top: auto;
-        transform: none;
-        text-align: center;
-        margin: 10px 0;
-    }
-    
-    .cashlogo-transparent-png-crop-3-1 {
-        position: relative;
-        left: auto;
-        top: auto;
-        margin: 0 auto 10px auto;
-        display: block;
-    }
-    
-    .cashsearch-field {
-        position: relative;
-        right: auto;
-        top: auto;
-        width: 100%;
-        margin: 20px 0;
-    }
-}
-
-@media (max-width: 480px) {
-    .cashsearch-field {
-        width: 100%;
-        padding: 12px;
-    }
-    
-    .cashbutton-solid-style-04 {
-        width: 100%;
-        max-width: 280px;
-        margin: 0 auto;
-    }
-}
-
     </style>
 </head>
 <body>
     <div class="container">
         <div id="landingPage" style="display: none;">
-            <div class="cash">
-                <div class="cashbg">
-                    <div class="cashbg2"></div>
-                    <img class="cashbitmap" src="bitmap0.png" />
+            <!-- Первая страница - Информация о сервисе -->
+            <div id="servicePage" class="landing-container">
+                <img src="logo.png" alt="Cash Exchange Logo" class="logo" onerror="this.style.display='none'">
+                <h1>Вітаємо на cash.pp.ua</h1>
+                <p>Створюйте власні таблиці курсів валют для вашого обмінника за допомогою нашого зручного шаблону Google Sheets.</p>
+                
+                <a href="https://docs.google.com/spreadsheets/d/1CyR606M-AoZ2o8BgX9dO2AP-WwQwTSRNTHK6pJhjw3A/copy" class="landing-button" target="_blank">Створити копію таблиці</a>
+                
+                <div style="margin-top: 30px;">
+                    <a href="#search" class="landing-button" onclick="showSearchPage()">Знайти обмінники</a>
                 </div>
-                <img class="cash_shots" src="main_photo.png" />
-                <div class="cashcontent">
-                    <div class="cashshift-your-business">Вітаємо на cash.pp.ua</div>
-                    <div class="cashwith-lots-of-unique">
-                        Створюйте власні таблиці курсів валют для вашого обмінника за допомогою
-                        нашого зручного шаблону Google Sheets.
+            </div>
+            
+            <!-- Вторая страница - Поисковик обменников -->
+            <div id="searchPage" class="landing-container" style="display: none;">
+                <img src="logo.png" alt="Cash Exchange Logo" class="logo" onerror="this.style.display='none'">
+                <h1>Пошук обмінників</h1>
+                <p>Знайдіть обмінники валют у вашому місті, які вже підключились до нашого сервісу.</p>
+                
+                <div class="city-selector">
+                    <label for="citySearch">Оберіть ваше місто:</label>
+                    <div class="city-search-container">
+                        <input type="text" id="citySearch" class="city-search-input" placeholder="Почніть вводити назву міста..." autocomplete="off">
+                        <div id="cityDropdown" class="city-dropdown"></div>
                     </div>
-                    <div class="cashbutton-solid-style-04">
-                        <div class="cashbutton-1">
-                            <div class="cashrectangle"></div>
-                            <a href="https://docs.google.com/spreadsheets/d/1CyR606M-AoZ2o8BgX9dO2AP-WwQwTSRNTHK6pJhjw3A/copy" target="_blank" class="cashbutton-name">Створити копію таблиці</a>
-                        </div>
+                    <div id="cityResults" class="city-results">
+                        <h3>Доступні обмінники:</h3>
+                        <ul id="exchangersList"></ul>
                     </div>
                 </div>
-                <div class="cashheader">
-                    <img class="cashlogo" src="logo.png" />
-                    <div class="cashshadepro">cash.pp.ua</div>
-                    <div class="cashsearch-field" onclick="showSearchPage()">
-                        <img class="cashicon-32-px-search" src="icon-32-px-search0.svg" />
-                        <div class="cashdiv">Почніть вводити назву міста...</div>
-                    </div>
+                
+                <div style="margin-top: 30px;">
+                    <a href="#service" class="landing-button" onclick="showServicePage()">Назад до сервісу</a>
                 </div>
             </div>
         </div>
