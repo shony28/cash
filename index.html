@@ -665,21 +665,298 @@
     }
 }
 
+/* Стили для нового лэндинга */
+.cash-landing {
+    height: 100vh;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
+}
+
+.cash-landing__bg2 {
+    background: #ffffff;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    z-index: 1;
+}
+
+.cash-landing__main-photo {
+    width: 600px;
+    height: 600px;
+    position: absolute;
+    right: 5%;
+    top: 50%;
+    transform: translateY(-50%);
+    object-fit: cover;
+    z-index: 2;
+}
+
+.cash-landing__content {
+    width: 540px;
+    height: 400px;
+    position: absolute;
+    left: 10%;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 3;
+}
+
+.cash-landing__header {
+    padding: 25px;
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 4;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+}
+
+.cash-landing__logo {
+    width: 69px;
+    height: 70px;
+    object-fit: cover;
+    border-radius: 10px;
+}
+
+.cash-landing__site-name {
+    color: #161c2d;
+    font-family: "Arsenal-Regular", system-ui, -apple-system, sans-serif;
+    font-size: 24px;
+    letter-spacing: -0.13px;
+    font-weight: 600;
+    margin-left: 10px;
+}
+
+.cash-landing__search-field {
+    background: #ffffff;
+    border-radius: 10px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 372px;
+    height: 56px;
+    box-shadow: 1px 2px 7.8px 0px rgba(0, 0, 0, 0.25);
+    margin-left: auto;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.cash-landing__search-field:hover {
+    transform: translateY(-2px);
+    box-shadow: 1px 4px 15px 0px rgba(0, 0, 0, 0.3);
+}
+
+.cash-landing__search-icon {
+    width: 24px;
+    height: 24px;
+    opacity: 0.6;
+}
+
+.cash-landing__search-placeholder {
+    color: #656565;
+    font-family: "Inter-Medium", system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 18px;
+    font-weight: 500;
+    opacity: 0.7;
+}
+
+.cash-landing__title {
+    color: #161c2d;
+    font-family: "Arsenal-Regular", system-ui, -apple-system, sans-serif;
+    font-size: 48px;
+    line-height: 65px;
+    letter-spacing: -2px;
+    font-weight: 400;
+    margin-bottom: 30px;
+}
+
+.cash-landing__description {
+    color: #161c2d;
+    font-family: "Arsenal-Regular", system-ui, sans-serif;
+    font-size: 20px;
+    line-height: 32px;
+    letter-spacing: -0.2px;
+    font-weight: 400;
+    opacity: 0.7;
+    margin-bottom: 40px;
+}
+
+.cash-landing__button {
+    background: linear-gradient(90deg, rgba(102, 126, 234, 1) 0%, rgba(118, 75, 162, 1) 100%);
+    border-radius: 8px;
+    color: #ffffff;
+    text-align: center;
+    font-family: "Arsenal-Bold", system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 38px;
+    font-weight: 700;
+    padding: 15px 30px;
+    width: 250px;
+    display: inline-block;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.cash-landing__button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+/* Адаптивность для нового дизайна */
+@media (max-width: 1200px) {
+    .cash-landing__main-photo {
+        width: 400px;
+        height: 400px;
+        right: 3%;
+    }
+    
+    .cash-landing__content {
+        width: 450px;
+        left: 5%;
+    }
+    
+    .cash-landing__title {
+        font-size: 40px;
+        line-height: 50px;
+    }
+}
+
+@media (max-width: 968px) {
+    .cash-landing {
+        flex-direction: column;
+        padding-top: 120px;
+    }
+    
+    .cash-landing__main-photo {
+        position: relative;
+        right: auto;
+        top: auto;
+        transform: none;
+        width: 300px;
+        height: 300px;
+        order: 2;
+        margin-top: 30px;
+    }
+    
+    .cash-landing__content {
+        position: relative;
+        left: auto;
+        top: auto;
+        transform: none;
+        text-align: center;
+        order: 1;
+        width: 90%;
+        max-width: 500px;
+    }
+    
+    .cash-landing__header {
+        position: fixed;
+        flex-direction: column;
+        gap: 15px;
+        padding: 15px;
+    }
+    
+    .cash-landing__search-field {
+        width: 100%;
+        max-width: 350px;
+        margin-left: 0;
+    }
+    
+    .cash-landing__title {
+        font-size: 32px;
+        line-height: 40px;
+    }
+    
+    .cash-landing__description {
+        font-size: 18px;
+        line-height: 28px;
+    }
+}
+
+@media (max-width: 480px) {
+    .cash-landing__header {
+        padding: 10px;
+    }
+    
+    .cash-landing__logo {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .cash-landing__site-name {
+        font-size: 18px;
+    }
+    
+    .cash-landing__search-field {
+        height: 50px;
+        padding: 12px;
+    }
+    
+    .cash-landing__title {
+        font-size: 28px;
+        line-height: 36px;
+    }
+    
+    .cash-landing__description {
+        font-size: 16px;
+        line-height: 24px;
+    }
+    
+    .cash-landing__button {
+        width: 100%;
+        max-width: 280px;
+    }
+    
+    .cash-landing__main-photo {
+        width: 250px;
+        height: 250px;
+    }
+}
+
     </style>
 </head>
 <body>
     <div class="container">
         <div id="landingPage" style="display: none;">
             <!-- Первая страница - Информация о сервисе -->
-            <div id="servicePage" class="landing-container">
-                <img src="logo.png" alt="Cash Exchange Logo" class="logo" onerror="this.style.display='none'">
-                <h1>Вітаємо на cash.pp.ua</h1>
-                <p>Створюйте власні таблиці курсів валют для вашого обмінника за допомогою нашого зручного шаблону Google Sheets.</p>
+            <div id="servicePage" class="cash-landing">
+                <div class="cash-landing__bg2"></div>
                 
-                <a href="https://docs.google.com/spreadsheets/d/1CyR606M-AoZ2o8BgX9dO2AP-WwQwTSRNTHK6pJhjw3A/copy" class="landing-button" target="_blank">Створити копію таблиці</a>
+                <div class="cash-landing__header">
+                    <img src="logo.png" alt="Cash Exchange Logo" class="cash-landing__logo" onerror="this.style.display='none'">
+                    <div class="cash-landing__site-name">cash.pp.ua</div>
+                    <div class="cash-landing__search-field" onclick="showSearchPage()">
+                        <svg class="cash-landing__search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <path d="m21 21-4.35-4.35"></path>
+                        </svg>
+                        <div class="cash-landing__search-placeholder">Почніть вводити назву міста...</div>
+                    </div>
+                </div>
                 
-                <div style="margin-top: 30px;">
-                    <a href="#search" class="landing-button" onclick="showSearchPage()">Знайти обмінники</a>
+                <img class="cash-landing__main-photo" src="main-photo0.png" alt="Exchange service" onerror="this.style.display='none'" />
+                
+                <div class="cash-landing__content">
+                    <h1 class="cash-landing__title">Вітаємо на cash.pp.ua</h1>
+                    <p class="cash-landing__description">
+                        Створюйте власні таблиці курсів валют для вашого обмінника за допомогою нашого зручного шаблону Google Sheets.
+                    </p>
+                    <a href="https://docs.google.com/spreadsheets/d/1CyR606M-AoZ2o8BgX9dO2AP-WwQwTSRNTHK6pJhjw3A/copy" 
+                       class="cash-landing__button" target="_blank">Створити копію таблиці</a>
                 </div>
             </div>
             
