@@ -668,6 +668,7 @@
         padding: 12px;
         width: 100%;
         max-width: 180px;
+        font-size: 13px;
     }
 }
 
@@ -954,8 +955,16 @@
     font-size: 14px;
     font-weight: 500;
     margin-left: auto;
-    cursor: not-allowed;
-    opacity: 0.7;
+    cursor: pointer;
+    opacity: 0.8;
+    transition: all 0.3s ease;
+}
+
+.cash-landing__dev-button:hover {
+    opacity: 1;
+    border-color: #667eea;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 .cash-landing__dev-icon {
@@ -976,14 +985,13 @@
                 <div class="cash-landing__header">
                     <img src="logo0.png" alt="Cash Exchange Logo" class="cash-landing__logo" onerror="this.style.display='none'">
                     <div class="cash-landing__site-name">cash.pp.ua</div>
-                        <div class="cash-landing__dev-button">
-                            <svg class="cash-landing__dev-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <line x1="12" y1="8" x2="12" y2="12"></line>
-                                <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                            </svg>
-                            <div>В розробці</div>
-                        </div>
+                    <div class="cash-landing__dev-button" onclick="showSearchPage()">
+                        <svg class="cash-landing__dev-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <path d="m21 21-4.35-4.35"></path>
+                        </svg>
+                        <div>Пошук обмінників</div>
+                    </div>
                 </div>
                 
                 <img class="cash-landing__main-photo" src="main-photo0.png" alt="Exchange service" onerror="this.style.display='none'" />
