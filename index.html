@@ -663,6 +663,12 @@
         max-width: 100px;
         margin-bottom: 10px;
     }
+    .cash-landing__dev-button {
+        height: 50px;
+        padding: 12px;
+        width: 100%;
+        max-width: 180px;
+    }
 }
 
 /* Стили для нового лэндинга */
@@ -885,6 +891,11 @@
         font-size: 18px;
         line-height: 28px;
     }
+    .cash-landing__dev-button {
+        width: 100%;
+        max-width: 200px;
+        margin-left: 0;
+    }
 }
 
 @media (max-width: 480px) {
@@ -927,6 +938,32 @@
     }
 }
 
+.cash-landing__dev-button {
+    background: rgba(255, 255, 255, 0.8);
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 200px;
+    height: 56px;
+    color: #666;
+    font-family: "Inter-Medium", system-ui, sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    margin-left: auto;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.cash-landing__dev-icon {
+    width: 20px;
+    height: 20px;
+    opacity: 0.6;
+}
+
     </style>
 </head>
 <body>
@@ -939,13 +976,14 @@
                 <div class="cash-landing__header">
                     <img src="logo0.png" alt="Cash Exchange Logo" class="cash-landing__logo" onerror="this.style.display='none'">
                     <div class="cash-landing__site-name">cash.pp.ua</div>
-                    <div class="cash-landing__search-field" onclick="showSearchPage()">
-                        <svg class="cash-landing__search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <circle cx="11" cy="11" r="8"></circle>
-                            <path d="m21 21-4.35-4.35"></path>
-                        </svg>
-                        <div class="cash-landing__search-placeholder">Почніть вводити назву міста...</div>
-                    </div>
+                        <div class="cash-landing__dev-button">
+                            <svg class="cash-landing__dev-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="8" x2="12" y2="12"></line>
+                                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                            </svg>
+                            <div>В розробці</div>
+                        </div>
                 </div>
                 
                 <img class="cash-landing__main-photo" src="main-photo0.png" alt="Exchange service" onerror="this.style.display='none'" />
