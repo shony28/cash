@@ -473,6 +473,9 @@
             .contact-container p {
                 font-size: 0.95rem;
             }
+            .cash-landing__search-placeholder {
+        font-size: 13px;
+    }
         }
 
         @media (max-width: 300px) {
@@ -719,15 +722,15 @@
     align-items: center;
     gap: 30px;
     position: absolute;
-    width: 1000px;
+    width: 100%;
+    max-width: 1000px;
     top: 0;
-    left: 0;
-    right: 0;
+    left: 50%;
+    transform: translateX(-50%);
     z-index: 4;
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
 }
-
 .cash-landing__logo {
     width: 69px;
     height: 70px;
@@ -873,15 +876,23 @@
     
     .cash-landing__header {
         position: fixed;
-        flex-direction: column;
+        left: 0;
+        transform: none;
+        max-width: none;
+        width: 100%;
+        flex-direction: row;
+        justify-content: space-between;
         gap: 15px;
-        padding: 15px;
+        padding: 15px 20px;
+        flex-wrap: wrap;
     }
     
     .cash-landing__search-field {
         width: 100%;
         max-width: 350px;
         margin-left: 0;
+        order: 3;
+        flex-basis: 100%;
     }
     
     .cash-landing__title {
@@ -894,15 +905,14 @@
         line-height: 28px;
     }
     .cash-landing__dev-button {
-        width: 100%;
-        max-width: 200px;
-        margin-left: 0;
+        display: none;
     }
 }
 
 @media (max-width: 480px) {
     .cash-landing__header {
-        padding: 10px;
+        padding: 10px 15px;
+        gap: 10px;
     }
     
     .cash-landing__logo {
@@ -911,12 +921,13 @@
     }
     
     .cash-landing__site-name {
-        font-size: 18px;
+        font-size: 16px;
     }
     
     .cash-landing__search-field {
-        height: 50px;
-        padding: 12px;
+        height: 48px;
+        padding: 12px 16px;
+        max-width: none;
     }
     
     .cash-landing__title {
