@@ -986,6 +986,24 @@
     opacity: 0.6;
 }
 
+.swap-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+    margin: 0 10px;
+    vertical-align: middle;
+    transition: transform 0.3s ease;
+}
+
+.swap-button:hover {
+    transform: rotate(90deg);
+}
+
+.swap-button svg {
+    stroke: #667eea;
+}
+
     </style>
 </head>
 <body>
@@ -1038,7 +1056,7 @@
                 </div>
                 
                 <div style="margin-top: 30px;">
-                    <a href="#service" class="landing-button" onclick="showServicePage()">Назад до сервісу</a>
+                    <a href="#service" class="landing-button" onclick="showServicePage()">Назад</a>
                 </div>
             </div>
         </div>
@@ -1091,7 +1109,14 @@
                         </select>
                         <input type="number" id="fromAmount" oninput="convertFromSource()" placeholder="Введіть суму" min="0" step="0.01">
                     </div>
-                    <div class="exchange-rate-info" id="exchangeRateInfo"></div>
+                    <div class="exchange-rate-info">
+                        <button id="swapCurrencies" class="swap-button" onclick="swapCurrencies()">
+                            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M16 3h5v5M8 21H3v-5M21 8l-9 9M12 7l9 9"></path>
+                            </svg>
+                        </button>
+                        <span id="exchangeRateInfo"></span>
+                    </div>
                     <div class="converter-section">
                         <label>Отримуєте <img id="toCurrencyFlag" class="converter-flag" src="" alt="" style="display: none;"></label>
                         <select id="toCurrency" onchange="updateConversion()">
@@ -1814,6 +1839,33 @@
             document.getElementById('customerName').value = '';
             document.getElementById('customerPhone').value = '+38';
             document.getElementById('phoneError').style.display = 'none';
+        }
+
+        // функция для смены валют
+        function swapCurrencies() {
+            const fromSelect = document.getElementById('fromCurrency');
+            const toSelect = document.getElementById('toCurrency');
+            const fromAmount = document.getElementById('fromAmount');
+            const toAmount = document.getElementById('toAmount');
+            
+            // Сохранить текущие значения
+            const tempCurrency = fromSelect.value;
+            const tempAmount = fromAmount.value;
+            
+            // Поменять валюты местами
+            fromSelect.value = toSelect.value;
+            toSelect.value = tempCurrency;
+            
+            // Поменять суммы местами
+            fromAmount.value = toAmount.value;
+            toAmount.value = tempAmount;
+            
+            // Обновить доступные опции для toCurrency
+            updateToCurrencyOptions();
+            
+            // Обновить конвертацию и флаги
+            updateConversion();
+            updateCurrencyFlags();
         }
 
         function validatePhoneNumber(phone) {
