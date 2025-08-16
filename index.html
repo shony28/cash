@@ -1109,14 +1109,14 @@
                         </select>
                         <input type="number" id="fromAmount" oninput="convertFromSource()" placeholder="Введіть суму" min="0" step="0.01">
                     </div>
-                    <div class="exchange-rate-info">
-                        <button id="swapCurrencies" class="swap-button" onclick="swapCurrencies()">
-                            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M16 3h5v5M8 21H3v-5M21 8l-9 9M12 7l9 9"></path>
-                            </svg>
-                        </button>
-                        <span id="exchangeRateInfo"></span>
-                    </div>
+                        <div class="exchange-rate-info">
+                            <button id="swapCurrencies" class="swap-button" onclick="swapCurrencies()">
+                                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M7 17h10M7 7h10M4 12H20M4 12l3-3m-3 3l3 3m13-3l-3 3m3-3l-3-3"></path>
+                                </svg>
+                            </button>
+                            <span id="exchangeRateInfo"></span>
+                        </div>
                     <div class="converter-section">
                         <label>Отримуєте <img id="toCurrencyFlag" class="converter-flag" src="" alt="" style="display: none;"></label>
                         <select id="toCurrency" onchange="updateConversion()">
