@@ -1285,20 +1285,49 @@
                 }
 
                 console.log('Перевірка id як alias:', idParam);
-                const response = await fetchWithRetry(ALIASES_CSV_URL);
-                const csvText = response;
                 
-                const rows = csvText.split('\n').slice(1);
-                for (const row of rows) {
-                    const [csvAlias, spreadsheetId] = row.split(',').map(item => item.trim());
-                    if (csvAlias === idParam && spreadsheetId) {
-                        SPREADSHEET_ID = spreadsheetId;
-                        console.log('Знайдено SPREADSHEET_ID для alias:', idParam);
-                        return;
+                // Попытка загрузить aliases с retry логикой
+                let csvText;
+                try {
+                    const response = await fetchWithRetry(ALIASES_CSV_URL);
+                    csvText = response;
+                } catch (error) {
+                    console.error('Помилка завантаження aliases CSV:', error);
+                    // Попробуем еще раз через небольшую задержку
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    try {
+                        const response = await fetchWithRetry(ALIASES_CSV_URL);
+                        csvText = response;
+                    } catch (retryError) {
+                        console.error('Повторна помилка завантаження aliases CSV:', retryError);
+                        throw new Error(`Не вдалося завантажити список aliases. Спробуйте оновити сторінку.`);
                     }
                 }
                 
-                throw new Error(`ID таблиці для alias "${idParam}" не знайдено, і параметр не є SPREADSHEET_ID`);
+                const rows = csvText.split('\n').slice(1);
+                let found = false;
+                
+                for (const row of rows) {
+                    if (row.trim() === '') continue; // пропускаем пустые строки
+                    
+                    const columns = row.split(',').map(item => item.trim());
+                    if (columns.length >= 2) {
+                        const csvAlias = columns[0];
+                        const spreadsheetId = columns[1];
+                        
+                        if (csvAlias === idParam && spreadsheetId) {
+                            SPREADSHEET_ID = spreadsheetId;
+                            console.log('Знайдено SPREADSHEET_ID для alias:', idParam);
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+                
+                if (!found) {
+                    throw new Error(`ID таблиці для alias "${idParam}" не знайдено, і параметр не є SPREADSHEET_ID`);
+                }
+                
             } catch (error) {
                 console.error('Помилка отримання SPREADSHEET_ID:', error);
                 throw error;
@@ -2194,7 +2223,13 @@ function setupCitySearch() {
 
 
         async function loadAllData() {
+            const loadingEl = document.getElementById('loading');
+            const errorEl = document.getElementById('error');
+            
             try {
+                loadingEl.style.display = 'block';
+                errorEl.style.display = 'none';
+                
                 await getSpreadsheetId();
                 await Promise.all([
                     loadSettings(),
@@ -2202,11 +2237,23 @@ function setupCitySearch() {
                 ]);
             } catch (error) {
                 console.error('Помилка ініціалізації:', error);
-                const errorEl = document.getElementById('error');
-                const loadingEl = document.getElementById('loading');
                 loadingEl.style.display = 'none';
                 errorEl.style.display = 'block';
                 document.getElementById('lastUpdate').textContent = 'Помилка оновлення';
+                
+                // Если ошибка связана с загрузкой aliases, покажем более информативное сообщение
+                if (error.message.includes('aliases') || error.message.includes('alias')) {
+                    errorEl.innerHTML = `
+                        <p>Помилка завантаження даних. ${error.message}</p>
+                        <p><a href="#" id="retryLink">Спробувати ще раз</a></p>
+                    `;
+                    
+                    // Переназначим обработчик для retry
+                    document.getElementById('retryLink').addEventListener('click', function(e) {
+                        e.preventDefault();
+                        loadAllData();
+                    });
+                }
             }
         }
 
