@@ -4,16 +4,11 @@
   <meta charset="UTF-8">
   <title>Redirect</title>
   <script>
-    // Берем путь, убираем ведущие слэши
-    const path = window.location.pathname.replace(/^\/+/, "");
+const path = window.location.pathname;
+const newUrl = "/?id=" + encodeURIComponent(path);
+history.replaceState(null, "", path);
+window.location.replace(newUrl);
 
-    if (path) {
-      // Перенаправляем на главную с параметром ?id=...
-      window.location.replace("/?id=" + encodeURIComponent(path));
-    } else {
-      // Если путь пустой (например /404.html), возвращаем на главную
-      window.location.replace("/");
-    }
   </script>
 </head>
 <body>
